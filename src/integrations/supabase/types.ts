@@ -14,7 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      startup_reports: {
+        Row: {
+          blind_spots: Json | null
+          created_at: string
+          health_score: number | null
+          id: string
+          investor_questions: Json | null
+          opportunities: Json | null
+          risks: Json | null
+          startup_id: string
+          strategic_recommendations: Json | null
+          strengths: Json | null
+          user_id: string
+          validation_steps: Json | null
+        }
+        Insert: {
+          blind_spots?: Json | null
+          created_at?: string
+          health_score?: number | null
+          id?: string
+          investor_questions?: Json | null
+          opportunities?: Json | null
+          risks?: Json | null
+          startup_id: string
+          strategic_recommendations?: Json | null
+          strengths?: Json | null
+          user_id: string
+          validation_steps?: Json | null
+        }
+        Update: {
+          blind_spots?: Json | null
+          created_at?: string
+          health_score?: number | null
+          id?: string
+          investor_questions?: Json | null
+          opportunities?: Json | null
+          risks?: Json | null
+          startup_id?: string
+          strategic_recommendations?: Json | null
+          strengths?: Json | null
+          user_id?: string
+          validation_steps?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "startup_reports_startup_id_fkey"
+            columns: ["startup_id"]
+            isOneToOne: false
+            referencedRelation: "startups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      startups: {
+        Row: {
+          competitors: string | null
+          created_at: string
+          description: string | null
+          id: string
+          industry: string | null
+          problem: string | null
+          revenue_model: string | null
+          startup_name: string
+          startup_stage: string | null
+          target_audience: string | null
+          user_id: string
+        }
+        Insert: {
+          competitors?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          industry?: string | null
+          problem?: string | null
+          revenue_model?: string | null
+          startup_name: string
+          startup_stage?: string | null
+          target_audience?: string | null
+          user_id: string
+        }
+        Update: {
+          competitors?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          industry?: string | null
+          problem?: string | null
+          revenue_model?: string | null
+          startup_name?: string
+          startup_stage?: string | null
+          target_audience?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
