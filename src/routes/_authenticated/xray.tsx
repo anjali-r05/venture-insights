@@ -193,10 +193,10 @@ function LoadingScreen() {
     "Creating strategic recommendations…",
   ];
   const [i, setI] = useState(0);
-  useState(() => {
+  useEffect(() => {
     const t = setInterval(() => setI(x => (x + 1) % messages.length), 2500);
     return () => clearInterval(t);
-  });
+  }, [messages.length]);
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
