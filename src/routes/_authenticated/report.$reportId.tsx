@@ -28,8 +28,8 @@ function ReportPage() {
     },
   });
 
-  if (isLoading) return <div className="text-center text-muted-foreground">Loading report…</div>;
-  if (!data) return <div className="text-center text-muted-foreground">Report not found.</div>;
+  if (isLoading) return <div className="py-24 text-center font-mono text-sm uppercase tracking-[0.25em] text-accent">Loading intelligence…</div>;
+  if (!data) return <div className="py-24 text-center text-muted-foreground">Report not found.</div>;
 
   const score = data.health_score ?? 0;
   const assessment =
@@ -40,37 +40,38 @@ function ReportPage() {
   const startup = (data as any).startups;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10">
+    <div className="mx-auto max-w-6xl space-y-14 fade-up">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link to="/history" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/history" className="inline-flex items-center font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground">
             <ArrowLeft className="mr-1.5 h-4 w-4" /> All reports
           </Link>
-          <h1 className="mt-2 text-4xl font-bold">Startup X-Ray Report</h1>
-          <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{startup?.startup_name}</span>
-            <span>•</span> <span>{startup?.industry}</span>
-            <span>•</span> <span>{startup?.startup_stage}</span>
-            <span>•</span> <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{new Date(data.created_at).toLocaleDateString()}</span>
+          <div className="mt-4 chip text-accent border-accent/40"><Sparkles className="h-3.5 w-3.5" /> Startup X-Ray Intelligence Report</div>
+          <h1 className="mt-5 text-5xl font-extrabold tracking-tight md:text-6xl">{startup?.startup_name}</h1>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="chip text-muted-foreground">{startup?.industry}</span>
+            <span className="chip text-muted-foreground">{startup?.startup_stage}</span>
+            <span className="chip text-muted-foreground"><Calendar className="h-3 w-3" />{new Date(data.created_at).toLocaleDateString()}</span>
           </div>
         </div>
-        <Link to="/xray"><Button variant="outline">Run another</Button></Link>
+        <Link to="/xray"><Button className="btn-neon h-12 px-6 font-semibold">Run another</Button></Link>
       </div>
 
       {/* Health Score */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="glass relative overflow-hidden rounded-3xl p-10">
-        <div className="absolute inset-x-10 -top-20 h-40 rounded-full bg-gradient-primary opacity-25 blur-3xl" />
-        <div className="grid items-center gap-8 md:grid-cols-2">
+        className="glass-strong relative overflow-hidden rounded-[2rem] p-12">
+        <div className="absolute inset-x-10 -top-20 h-48 rounded-full bg-gradient-neon opacity-30 blur-3xl" />
+        <div className="grid items-center gap-10 md:grid-cols-2">
           <div className="flex justify-center"><ScoreRing score={score} /></div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gradient">Health Score</div>
-            <h2 className="mt-2 text-5xl font-bold">{score}<span className="text-2xl text-muted-foreground">/100</span></h2>
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-card/60 px-4 py-1.5 text-sm font-medium">
-              <Sparkles className="h-4 w-4 text-primary" /> {assessment}
+            <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent">Startup Health Score</div>
+            <h2 className="mt-3 font-display text-7xl font-extrabold tracking-tight">{score}<span className="text-3xl text-muted-foreground">/100</span></h2>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-card/60 px-5 py-2 text-base font-semibold">
+              <Sparkles className="h-4 w-4 text-accent" /> {assessment}
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              A weighted assessment of your startup's viability, defensibility, and execution risk.
+            <p className="mt-6 max-w-md text-[15px] leading-relaxed text-muted-foreground">
+              A weighted assessment of your startup's viability, defensibility, and execution risk —
+              calibrated against investor-grade benchmarks.
             </p>
           </div>
         </div>
