@@ -200,19 +200,20 @@ function LoadingScreen() {
   }, [messages.length]);
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+    <div className="flex min-h-[70vh] flex-col items-center justify-center text-center fade-up">
       <div className="relative">
-        <div className="absolute inset-0 -m-12 rounded-full bg-gradient-primary opacity-30 blur-3xl animate-pulse" />
-        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-primary glow">
-          <Loader2 className="h-10 w-10 animate-spin text-primary-foreground" />
+        <div className="absolute inset-0 -m-16 rounded-full bg-gradient-neon opacity-30 blur-3xl animate-pulse" />
+        <div className="relative flex h-28 w-28 items-center justify-center rounded-3xl border border-accent/40 bg-card glow">
+          <Loader2 className="h-12 w-12 animate-spin text-accent" strokeWidth={1.5} />
         </div>
       </div>
-      <h2 className="mt-10 text-2xl font-bold">Running your Startup X-Ray</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Estimated time: 15–30 seconds</p>
+      <div className="chip mt-10 text-accent border-accent/40"><Sparkles className="h-3.5 w-3.5" /> X-Ray Intelligence System</div>
+      <h2 className="mt-5 text-4xl font-extrabold tracking-tight md:text-5xl">Running diagnostics…</h2>
+      <p className="mt-3 font-mono text-xs uppercase tracking-[0.25em] text-muted-foreground">Estimated · 15–30 seconds</p>
       <AnimatePresence mode="wait">
         <motion.div key={i}
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-          className="mt-8 text-lg font-medium text-gradient">
+          className="mt-10 text-2xl font-bold text-gradient">
           {messages[i]}
         </motion.div>
       </AnimatePresence>
