@@ -77,57 +77,43 @@ function ReportPage() {
         </div>
       </motion.div>
 
-      <Section title="Strengths" icon={CheckCircle2} accent="success">
+      <Section title="Strengths" eyebrow="Signal" icon={CheckCircle2} tone="success">
         <Grid items={data.strengths as any[]} render={(i) => (
-          <div className="rounded-2xl border border-success/30 bg-success/5 p-5">
-            <div className="font-semibold text-success">{i.title}</div>
-            <p className="mt-1 text-sm text-muted-foreground">{i.detail}</p>
-          </div>
+          <InsightCard tone="success" title={i.title} detail={i.detail} />
         )} />
       </Section>
 
-      <Section title="Risks" icon={AlertTriangle} accent="destructive">
+      <Section title="Hidden Risks" eyebrow="Critical" icon={AlertTriangle} tone="destructive">
         <Grid items={data.risks as any[]} render={(i) => (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="font-semibold text-destructive">{i.title}</div>
-              <SeverityBadge severity={i.severity} />
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">{i.detail}</p>
-          </div>
+          <InsightCard tone="destructive" title={i.title} detail={i.detail}
+            right={<SeverityBadge severity={i.severity} />} pulse />
         )} />
       </Section>
 
-      <Section title="Blind Spots" icon={Eye} accent="warning">
+      <Section title="Blind Spots" eyebrow="High" icon={Eye} tone="warning">
         <Grid items={data.blind_spots as any[]} render={(i) => (
-          <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-            <div className="font-semibold text-warning">{i.title}</div>
-            <p className="mt-1 text-sm text-muted-foreground">{i.detail}</p>
-          </div>
+          <InsightCard tone="warning" title={i.title} detail={i.detail} pulse />
         )} />
       </Section>
 
-      <Section title="Opportunities" icon={Lightbulb} accent="info">
+      <Section title="Opportunities" eyebrow="Upside" icon={Lightbulb} tone="accent">
         <Grid items={data.opportunities as any[]} render={(i) => (
-          <div className="rounded-2xl border border-info/30 bg-info/5 p-5">
-            <div className="font-semibold text-info">{i.title}</div>
-            <p className="mt-1 text-sm text-muted-foreground">{i.detail}</p>
-          </div>
+          <InsightCard tone="accent" title={i.title} detail={i.detail} />
         )} />
       </Section>
 
-      <Section title="4-Week Validation Roadmap" icon={Calendar} accent="primary">
-        <div className="relative space-y-4 border-l-2 border-primary/30 pl-6">
+      <Section title="4-Week Validation Roadmap" eyebrow="Execution" icon={Calendar} tone="primary">
+        <div className="relative space-y-5 border-l-2 border-accent/30 pl-8">
           {(data.validation_steps as any[])?.map((w, idx) => (
             <motion.div key={idx} initial={{ opacity: 0, x: 12 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               className="relative">
-              <div className="absolute -left-[31px] top-2 h-4 w-4 rounded-full bg-gradient-primary" />
-              <div className="rounded-2xl border border-border bg-card/40 p-5">
-                <div className="text-xs font-semibold uppercase tracking-wider text-gradient">Week {w.week}</div>
-                <div className="mt-1 font-semibold">{w.title}</div>
-                <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+              <div className="absolute -left-[37px] top-3 h-4 w-4 rounded-full bg-gradient-neon glow-cyan" />
+              <div className="card-hover rounded-2xl border border-border bg-card/50 p-6 backdrop-blur">
+                <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent">Week {w.week}</div>
+                <div className="mt-2 text-xl font-bold">{w.title}</div>
+                <ul className="mt-4 space-y-2 text-[15px] text-muted-foreground">
                   {w.actions?.map((a: string, i: number) => (
-                    <li key={i} className="flex gap-2"><span className="text-primary">→</span><span>{a}</span></li>
+                    <li key={i} className="flex gap-3"><span className="text-accent">→</span><span>{a}</span></li>
                   ))}
                 </ul>
               </div>
@@ -136,23 +122,23 @@ function ReportPage() {
         </div>
       </Section>
 
-      <Section title="Strategic Recommendations" icon={Sparkles} accent="accent">
-        <Grid items={data.strategic_recommendations as any[]} render={(i) => (
-          <div className="rounded-2xl border border-accent/40 bg-accent/5 p-5">
-            <div className="font-semibold text-accent">{i.title}</div>
-            <p className="mt-1 text-sm text-muted-foreground">{i.detail}</p>
-          </div>
-        )} />
-      </Section>
+      {data.strategic_recommendations ? (
+        <Section title="Strategic Recommendations" eyebrow="Playbook" icon={Sparkles} tone="accent">
+          <Grid items={data.strategic_recommendations as any[]} render={(i) => (
+            <InsightCard tone="accent" title={i.title} detail={i.detail} />
+          )} />
+        </Section>
+      ) : null}
 
-      <Section title="What Would Investors Ask?" icon={MessageSquareWarning} accent="primary">
+      <Section title="Investor Questions" eyebrow="Pitch Prep" icon={MessageSquareWarning} tone="primary">
         <div className="grid gap-3 md:grid-cols-2">
           {(data.investor_questions as string[])?.map((q, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: i * 0.04 }}
-              className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-accent/5 p-5">
-              <div className="text-xs font-semibold text-primary">VC Question</div>
-              <p className="mt-1 text-base font-medium">{q}</p>
+              className="card-hover relative overflow-hidden rounded-2xl border border-primary/30 bg-card/60 p-6 backdrop-blur">
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">VC Question · {String(i + 1).padStart(2, "0")}</div>
+              <p className="mt-3 text-lg font-semibold leading-snug">{q}</p>
             </motion.div>
           ))}
         </div>
@@ -161,33 +147,66 @@ function ReportPage() {
   );
 }
 
-function ScoreRing({ score }: { score: number }) {
-  const r = 80, c = 2 * Math.PI * r, dash = c * (score / 100);
+function InsightCard({ tone, title, detail, right, pulse }: { tone: string; title: string; detail: string; right?: React.ReactNode; pulse?: boolean }) {
+  const map: Record<string, { text: string; border: string; bg: string; ring: string }> = {
+    success:     { text: "text-success",     border: "border-success/40",     bg: "bg-success/5",     ring: "bg-success" },
+    destructive: { text: "text-destructive", border: "border-destructive/40", bg: "bg-destructive/5", ring: "bg-destructive" },
+    warning:     { text: "text-warning",     border: "border-warning/40",     bg: "bg-warning/5",     ring: "bg-warning" },
+    accent:      { text: "text-accent",      border: "border-accent/40",      bg: "bg-accent/5",      ring: "bg-accent" },
+    primary:     { text: "text-primary",     border: "border-primary/40",     bg: "bg-primary/5",     ring: "bg-primary" },
+  };
+  const t = map[tone];
   return (
-    <svg width="220" height="220" viewBox="0 0 220 220">
+    <div className={`card-hover relative overflow-hidden rounded-2xl border ${t.border} ${t.bg} p-6 backdrop-blur`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {pulse && <span className={`h-2 w-2 rounded-full ${t.ring} pulse-soft ${t.text}`} />}
+          <div className={`text-base font-bold ${t.text}`}>{title}</div>
+        </div>
+        {right}
+      </div>
+      <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{detail}</p>
+    </div>
+  );
+}
+
+function ScoreRing({ score }: { score: number }) {
+  const r = 90, c = 2 * Math.PI * r, dash = c * (score / 100);
+  return (
+    <svg width="240" height="240" viewBox="0 0 240 240">
       <defs>
         <linearGradient id="rg" x1="0%" x2="100%" y1="0%" y2="100%">
-          <stop offset="0%" stopColor="#EC4899" />
-          <stop offset="100%" stopColor="#7C3AED" />
+          <stop offset="0%" stopColor="#ec4899" />
+          <stop offset="50%" stopColor="#a855f7" />
+          <stop offset="100%" stopColor="#22d3ee" />
         </linearGradient>
       </defs>
-      <circle cx="110" cy="110" r={r} stroke="oklch(1 0 0 / 8%)" strokeWidth="16" fill="none" />
-      <motion.circle cx="110" cy="110" r={r} stroke="url(#rg)" strokeWidth="16" fill="none"
-        strokeLinecap="round" transform="rotate(-90 110 110)"
+      <circle cx="120" cy="120" r={r} stroke="oklch(1 0 0 / 6%)" strokeWidth="14" fill="none" />
+      <motion.circle cx="120" cy="120" r={r} stroke="url(#rg)" strokeWidth="14" fill="none"
+        strokeLinecap="round" transform="rotate(-90 120 120)"
         initial={{ strokeDasharray: `0 ${c}` }}
         animate={{ strokeDasharray: `${dash} ${c}` }}
         transition={{ duration: 1.2, ease: "easeOut" }} />
-      <text x="110" y="120" textAnchor="middle" className="fill-foreground" fontSize="48" fontWeight="700">{score}</text>
+      <text x="120" y="132" textAnchor="middle" className="fill-foreground font-display" fontSize="58" fontWeight="800">{score}</text>
     </svg>
   );
 }
 
-function Section({ title, icon: Icon, children }: any) {
+function Section({ title, eyebrow, icon: Icon, tone, children }: any) {
+  const map: Record<string, string> = {
+    success: "text-success", destructive: "text-destructive", warning: "text-warning",
+    accent: "text-accent", primary: "text-primary",
+  };
   return (
     <section>
-      <div className="mb-4 flex items-center gap-2">
-        <Icon className="h-5 w-5 text-primary" />
-        <h2 className="text-2xl font-bold">{title}</h2>
+      <div className="mb-6 flex items-center gap-3">
+        <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card/60 ${map[tone]}`}>
+          <Icon className="h-5 w-5" strokeWidth={1.5} />
+        </div>
+        <div>
+          <div className={`font-mono text-[10px] uppercase tracking-[0.25em] ${map[tone]}`}>{eyebrow}</div>
+          <h2 className="text-3xl font-extrabold tracking-tight">{title}</h2>
+        </div>
       </div>
       {children}
     </section>
