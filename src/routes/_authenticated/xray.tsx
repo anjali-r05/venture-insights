@@ -72,18 +72,19 @@ function XrayWizard() {
   if (submitting) return <LoadingScreen />;
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-8">
-        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gradient">Startup X-Ray™</div>
-        <h1 className="mt-2 text-3xl font-bold">{STEPS[step].title}</h1>
+    <div className="mx-auto max-w-4xl fade-up">
+      <div className="mb-10">
+        <div className="chip text-accent border-accent/40"><Sparkles className="h-3.5 w-3.5" /> Startup X-Ray Intelligence System</div>
+        <h1 className="mt-5 text-5xl font-extrabold tracking-tight md:text-6xl">{STEPS[step].title}</h1>
+        <p className="mt-3 text-lg text-muted-foreground">Six prompts. One investor-grade diagnostic.</p>
         <Progress current={step} total={STEPS.length} />
       </div>
 
-      <div className="glass rounded-3xl p-8">
+      <div className="glass-strong rounded-3xl p-10">
         <AnimatePresence mode="wait">
           <motion.div key={step}
             initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}
-            transition={{ duration: 0.25 }} className="space-y-5"
+            transition={{ duration: 0.25 }} className="space-y-6"
           >
             {step === 0 && (
               <>
@@ -121,15 +122,15 @@ function XrayWizard() {
             )}
             {step === 4 && (
               <Field label="Revenue model">
-                <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                   {REVENUE.map(r => (
                     <button type="button" key={r} onClick={() => set("revenue_model", r)}
-                      className={`rounded-2xl border p-4 text-left transition ${
+                      className={`card-hover rounded-2xl border p-5 text-left transition ${
                         form.revenue_model === r
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card/40 hover:border-primary/40"
+                          ? "border-accent bg-accent/10 text-accent"
+                          : "border-border bg-card/40 hover:border-accent/40"
                       }`}>
-                      <div className="font-medium">{r}</div>
+                      <div className="font-semibold">{r}</div>
                     </button>
                   ))}
                 </div>
@@ -144,19 +145,19 @@ function XrayWizard() {
           </motion.div>
         </AnimatePresence>
 
-        <div className="mt-8 flex items-center justify-between">
-          <Button variant="ghost" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}>
+        <div className="mt-10 flex items-center justify-between">
+          <Button variant="ghost" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0} className="font-semibold">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
           {step < STEPS.length - 1 ? (
             <Button onClick={() => setStep(s => s + 1)} disabled={!canNext()}
-              className="bg-gradient-primary text-primary-foreground">
+              className="btn-neon h-12 px-6 font-semibold">
               Continue <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
             <Button onClick={submit} disabled={!canNext()}
-              className="bg-gradient-primary text-primary-foreground glow">
-              <Sparkles className="mr-2 h-4 w-4" /> Analyze My Startup
+              className="btn-neon h-12 px-6 font-semibold glow">
+              <Sparkles className="mr-2 h-4 w-4 text-accent" /> Run Diagnostic
             </Button>
           )}
         </div>
@@ -166,19 +167,19 @@ function XrayWizard() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="space-y-2"><Label className="text-sm">{label}</Label>{children}</div>;
+  return <div className="space-y-2.5"><Label className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">{label}</Label>{children}</div>;
 }
 
 function Progress({ current, total }: { current: number; total: number }) {
   return (
-    <div className="mt-6">
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-card">
-        <motion.div className="h-full bg-gradient-primary"
+    <div className="mt-8">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+        <motion.div className="h-full bg-gradient-neon"
           initial={{ width: 0 }}
           animate={{ width: `${((current + 1) / total) * 100}%` }}
           transition={{ duration: 0.4 }} />
       </div>
-      <div className="mt-2 text-xs text-muted-foreground">Step {current + 1} of {total}</div>
+      <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Step {current + 1} / {total}</div>
     </div>
   );
 }
