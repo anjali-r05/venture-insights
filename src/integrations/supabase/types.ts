@@ -42,44 +42,59 @@ export type Database = {
         Row: {
           blind_spots: Json | null
           created_at: string
+          executive_summary: string | null
           health_score: number | null
           id: string
           investor_questions: Json | null
+          is_public: boolean
           opportunities: Json | null
+          readiness: Json | null
           risks: Json | null
           startup_id: string
           strategic_recommendations: Json | null
           strengths: Json | null
+          top_priorities: Json | null
           user_id: string
           validation_steps: Json | null
+          verdict: Json | null
         }
         Insert: {
           blind_spots?: Json | null
           created_at?: string
+          executive_summary?: string | null
           health_score?: number | null
           id?: string
           investor_questions?: Json | null
+          is_public?: boolean
           opportunities?: Json | null
+          readiness?: Json | null
           risks?: Json | null
           startup_id: string
           strategic_recommendations?: Json | null
           strengths?: Json | null
+          top_priorities?: Json | null
           user_id: string
           validation_steps?: Json | null
+          verdict?: Json | null
         }
         Update: {
           blind_spots?: Json | null
           created_at?: string
+          executive_summary?: string | null
           health_score?: number | null
           id?: string
           investor_questions?: Json | null
+          is_public?: boolean
           opportunities?: Json | null
+          readiness?: Json | null
           risks?: Json | null
           startup_id?: string
           strategic_recommendations?: Json | null
           strengths?: Json | null
+          top_priorities?: Json | null
           user_id?: string
           validation_steps?: Json | null
+          verdict?: Json | null
         }
         Relationships: [
           {
