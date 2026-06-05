@@ -2,9 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import {
-  CheckCircle2, AlertTriangle, Eye, Lightbulb, MessageSquareWarning,
+  CheckCircle2, AlertTriangle, Eye, Lightbulb,
   Sparkles, ArrowLeft, Calendar, Download, Share2, Link2, Save, Printer,
-  Target, Zap, TrendingUp, ShieldCheck,
+  Target, Zap, TrendingUp, ShieldCheck, Radar, Clock, Gauge,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,7 @@ const TABS = [
   { id: "opportunities", label: "Opportunities", icon: Lightbulb },
   { id: "roadmap", label: "Validation Roadmap", icon: Calendar },
   { id: "playbook", label: "Recommendations", icon: Target },
-  { id: "investor", label: "Investor Challenge Room", icon: MessageSquareWarning },
+  { id: "investor", label: "Investor Attractiveness", icon: Radar },
 ] as const;
 
 export function ReportView({ report, isPublic, readOnly, onShare, onCopy, busy, backHref }: Props) {
@@ -63,7 +63,7 @@ export function ReportView({ report, isPublic, readOnly, onShare, onCopy, busy, 
       </div>
 
       {/* SECTION 1 — Executive Summary */}
-      <ExecutiveSummary text={report.executive_summary} verdict={verdict} />
+      <ExecutiveSummary text={report.executive_summary} />
 
       {/* SECTION 2 + 3 — Score + Verdict + Readiness */}
       <div className="grid gap-6 lg:grid-cols-5">
@@ -116,7 +116,7 @@ export function ReportView({ report, isPublic, readOnly, onShare, onCopy, busy, 
           {tab === "opportunities" && <OpportunitiesTab items={report.opportunities} />}
           {tab === "roadmap" && <RoadmapTab items={report.validation_steps} />}
           {tab === "playbook" && <PlaybookTab items={report.strategic_recommendations} />}
-          {tab === "investor" && <InvestorTab items={report.investor_questions} />}
+          {tab === "investor" && <InvestorAttractivenessTab readiness={readiness} verdict={verdict} />}
         </motion.div>
       </AnimatePresence>
 
@@ -158,7 +158,7 @@ function ActionBtn({ icon: Icon, label, onClick, loading, highlight }: any) {
   );
 }
 
-function ExecutiveSummary({ text, verdict }: { text?: string; verdict: any }) {
+function ExecutiveSummary({ text }: { text?: string }) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
       className="glass-strong relative overflow-hidden rounded-[2rem] p-10">
@@ -173,7 +173,7 @@ function ExecutiveSummary({ text, verdict }: { text?: string; verdict: any }) {
         </div>
       </div>
       <p className="mt-6 max-w-4xl text-xl leading-relaxed text-foreground/90">
-        {text || "VentureBots is preparing your executive summary. Insights from this report are distilled into a quick briefing covering overview, assessment, critical risk, biggest opportunity, and next step."}
+        {text || "VentureBots is preparing your executive summary."}
       </p>
     </motion.div>
   );
@@ -189,7 +189,7 @@ function ScorePanel({ score, readiness }: { score: number; readiness: any }) {
           <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent">Startup Health Score™</div>
           <h2 className="mt-2 font-display text-6xl font-extrabold tracking-tight">{score}<span className="text-2xl text-muted-foreground">/100</span></h2>
           <div className="mt-5 space-y-2.5">
-            <ReadinessRow label="Risk Level" value={readiness.risk_level} tone={riskTone(readiness.risk_level)} />
+            <ReadinessRow label="Risk Level" value={readiness.risk_level} tone={levelTone(readiness.risk_level)} />
             <ReadinessRow label="Market Readiness" value={readiness.market_readiness} tone={levelTone(readiness.market_readiness)} />
             <ReadinessRow label="Execution Readiness" value={readiness.execution_readiness} tone={levelTone(readiness.execution_readiness)} />
             <ReadinessRow label="Investor Attractiveness" value={readiness.investor_attractiveness} tone={levelTone(readiness.investor_attractiveness)} />
@@ -209,19 +209,11 @@ function ReadinessRow({ label, value, tone }: { label: string; value?: string; t
   );
 }
 
-function riskTone(v?: string) {
-  switch ((v ?? "").toLowerCase()) {
-    case "low": return "text-success";
-    case "moderate": return "text-warning";
-    case "high": case "critical": return "text-destructive";
-    default: return "text-muted-foreground";
-  }
-}
 function levelTone(v?: string) {
   switch ((v ?? "").toLowerCase()) {
-    case "strong": case "high": return "text-success";
+    case "excellent": case "strong": case "high": return "text-success";
     case "moderate": case "medium": return "text-warning";
-    case "weak": case "low": return "text-destructive";
+    case "low": case "weak": case "very low": case "critical": return "text-destructive";
     default: return "text-muted-foreground";
   }
 }
@@ -269,8 +261,10 @@ function TopPriorities({ items }: { items: any[] }) {
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">Priority #{i + 1}</div>
             <div className="mt-2 text-xl font-bold">{p.title}</div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.detail}</p>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-3 py-1 text-[11px] font-bold">
-              <TrendingUp className="h-3 w-3" /> Impact: <span className={impactTone(p.impact)}>{p.impact ?? "Medium"}</span>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <MetaChip label="Impact" value={p.impact ?? "Medium"} tone={impactTone(p.impact)} icon={TrendingUp} />
+              <MetaChip label="Difficulty" value={p.difficulty ?? "Medium"} tone={difficultyTone(p.difficulty)} icon={Gauge} />
+              <MetaChip label="Time" value={p.time_required ?? "—"} tone="text-muted-foreground" icon={Clock} />
             </div>
           </motion.div>
         ))}
@@ -321,21 +315,53 @@ function Stat({ label, value, tone }: any) {
 }
 
 function StrengthsTab({ items }: { items: any[] }) {
+  if (!items?.length) return <Empty />;
   return (
-    <Grid items={items} render={(i) => (
-      <ToneCard tone="success" title={i.title} detail={i.detail}
-        meta={<MetaChip label="Impact" value={i.impact ?? "Medium"} tone={impactTone(i.impact)} />} />
-    )} />
+    <div className="grid gap-4 md:grid-cols-2">
+      {items.map((s: any, idx: number) => (
+        <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
+          className="card-hover relative overflow-hidden rounded-2xl border border-success/40 bg-success/5 p-6 backdrop-blur">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 text-success">
+              <CheckCircle2 className="h-4 w-4" />
+              <div className="text-base font-bold">{s.title}</div>
+            </div>
+            <MetaChip label="Impact" value={s.impact ?? "Medium"} tone={impactTone(s.impact)} />
+          </div>
+          <p className="mt-3 text-[15px] leading-relaxed text-foreground/90">{s.detail}</p>
+          {s.strategic_importance && <Sub label="Strategic importance">{s.strategic_importance}</Sub>}
+        </motion.div>
+      ))}
+    </div>
   );
 }
 
 function RisksTab({ items }: { items: any[] }) {
+  if (!items?.length) return <Empty />;
   return (
-    <Grid items={items} render={(i) => (
-      <ToneCard tone="destructive" title={i.title} detail={i.detail} pulse
-        right={<SeverityBadge severity={i.severity} />}
-        meta={<MetaChip label="Category" value={i.category ?? "—"} tone="text-destructive" />} />
-    )} />
+    <div className="grid gap-4 md:grid-cols-2">
+      {items.map((r: any, idx: number) => (
+        <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
+          className="card-hover relative overflow-hidden rounded-2xl border border-destructive/40 bg-destructive/5 p-6 backdrop-blur">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 text-destructive">
+              <span className="h-2 w-2 rounded-full bg-destructive pulse-soft" />
+              <div className="text-base font-bold">{r.title}</div>
+            </div>
+            <SeverityBadge severity={r.severity} />
+          </div>
+          <div className="mt-2"><MetaChip label="Category" value={r.category ?? "—"} tone="text-destructive" /></div>
+          <p className="mt-3 text-[15px] leading-relaxed text-foreground/90">{r.detail}</p>
+          {r.business_impact && <Sub label="Business impact">{r.business_impact}</Sub>}
+          {r.mitigation && (
+            <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Mitigation strategy</div>
+              <div className="mt-1 text-sm text-foreground/90">{r.mitigation}</div>
+            </div>
+          )}
+        </motion.div>
+      ))}
+    </div>
   );
 }
 
@@ -346,9 +372,12 @@ function BlindSpotsTab({ items }: { items: any[] }) {
       {items.map((i: any, idx: number) => (
         <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
           className="card-hover relative overflow-hidden rounded-2xl border border-warning/40 bg-warning/5 p-6 backdrop-blur">
-          <div className="flex items-center gap-2 text-warning">
-            <span className="h-2 w-2 rounded-full bg-warning pulse-soft" />
-            <div className="text-base font-bold">{i.title}</div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 text-warning">
+              <span className="h-2 w-2 rounded-full bg-warning pulse-soft" />
+              <div className="text-base font-bold">{i.title}</div>
+            </div>
+            {i.risk_level && <MetaChip label="Risk" value={i.risk_level} tone={difficultyTone(i.risk_level)} />}
           </div>
           <Sub label="Why it matters">{i.why_it_matters ?? i.detail}</Sub>
           <Sub label="Potential consequence">{i.consequence ?? "—"}</Sub>
@@ -387,6 +416,12 @@ function OpportunitiesTab({ items }: { items: any[] }) {
             <MetaChip label="Growth" value={o.growth_potential ?? "—"} tone={impactTone(o.growth_potential)} />
             <MetaChip label="Difficulty" value={o.difficulty ?? "—"} tone={difficultyTone(o.difficulty)} />
           </div>
+          {o.suggested_action && (
+            <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Suggested action</div>
+              <div className="mt-1 text-sm text-foreground/90">{o.suggested_action}</div>
+            </div>
+          )}
         </motion.div>
       ))}
     </div>
@@ -418,11 +453,26 @@ function RoadmapTab({ items }: { items: any[] }) {
               )}
             </div>
             <div className="mt-2 text-xl font-bold">{w.goal ?? w.title}</div>
-            <ul className="mt-4 space-y-2 text-[15px] text-muted-foreground">
-              {(w.tasks ?? w.actions)?.map((a: string, i: number) => (
-                <li key={i} className="flex gap-3"><span className="text-accent">→</span><span>{a}</span></li>
-              ))}
-            </ul>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Tasks</div>
+                <ul className="mt-2 space-y-1.5 text-[15px] text-foreground/90">
+                  {(w.tasks ?? w.actions)?.map((a: string, i: number) => (
+                    <li key={i} className="flex gap-2"><span className="text-accent">→</span><span>{a}</span></li>
+                  ))}
+                </ul>
+              </div>
+              {w.deliverables?.length > 0 && (
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Deliverables</div>
+                  <ul className="mt-2 space-y-1.5 text-[15px] text-foreground/90">
+                    {w.deliverables.map((d: string, i: number) => (
+                      <li key={i} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" /><span>{d}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
             {w.expected_outcome && (
               <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-3 text-sm">
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Expected outcome</span>
@@ -443,13 +493,16 @@ function PlaybookTab({ items }: { items: any[] }) {
       {items.map((r: any, idx: number) => (
         <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
           className="card-hover relative overflow-hidden rounded-2xl border border-accent/40 bg-card/60 p-6 backdrop-blur">
-          <div className="text-base font-bold text-accent">{r.title}</div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-base font-bold text-accent">{r.title}</div>
+            {r.priority_level && <PriorityBadge level={r.priority_level} />}
+          </div>
           <Sub label="What to do">{r.what_to_do ?? r.detail}</Sub>
           <Sub label="Why it matters">{r.why_it_matters ?? "—"}</Sub>
           <div className="mt-4 flex flex-wrap gap-2">
             <MetaChip label="Impact" value={r.expected_impact ?? "—"} tone={impactTone(r.expected_impact)} />
             <MetaChip label="Difficulty" value={r.difficulty ?? "—"} tone={difficultyTone(r.difficulty)} />
-            <MetaChip label="Time" value={r.time_required ?? "—"} tone="text-muted-foreground" />
+            <MetaChip label="Time" value={r.time_required ?? "—"} tone="text-muted-foreground" icon={Clock} />
           </div>
         </motion.div>
       ))}
@@ -457,73 +510,144 @@ function PlaybookTab({ items }: { items: any[] }) {
   );
 }
 
-function InvestorTab({ items }: { items: any[] }) {
-  if (!items?.length) return <Empty />;
-  // items may be array of strings (legacy) or { category, question }
-  const normalized = items.map((it: any) =>
-    typeof it === "string" ? { category: "General", question: it } : it
-  );
-  const groups = normalized.reduce<Record<string, any[]>>((acc, q) => {
-    const k = q.category ?? "General";
-    (acc[k] = acc[k] ?? []).push(q);
-    return acc;
-  }, {});
+function PriorityBadge({ level }: { level: string }) {
+  const l = level.toLowerCase();
+  const cls = l === "high" ? "bg-gradient-neon text-background"
+    : l === "medium" ? "bg-warning text-warning-foreground"
+    : "bg-muted text-foreground";
+  return <Badge className={`${cls} border-0`}>Priority · {level}</Badge>;
+}
+
+/* -------------- Investor Attractiveness (radar) -------------- */
+
+function InvestorAttractivenessTab({ readiness, verdict }: { readiness: any; verdict: any }) {
+  const fallback = [
+    { dimension: "Market Size", score: 0, note: "Not assessed." },
+    { dimension: "Differentiation", score: 0, note: "Not assessed." },
+    { dimension: "Business Model", score: 0, note: "Not assessed." },
+    { dimension: "Scalability", score: 0, note: "Not assessed." },
+    { dimension: "Founder-Market Fit", score: 0, note: "Not assessed." },
+    { dimension: "Investment Potential", score: 0, note: "Not assessed." },
+  ];
+  const breakdown: { dimension: string; score: number; note?: string }[] =
+    (readiness?.breakdown?.length ? readiness.breakdown : fallback);
+  const avg = breakdown.reduce((s, d) => s + (Number(d.score) || 0), 0) / breakdown.length;
+
   return (
     <div className="space-y-6">
       <div className="glass-strong rounded-2xl p-6">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">Investor Challenge Room™</div>
-        <h3 className="mt-2 text-2xl font-bold">Prepare for the toughest questions in the room</h3>
-        <p className="mt-2 text-muted-foreground">Grouped by the angles top-tier investors actually use to pressure-test founders.</p>
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">Investor Attractiveness Breakdown™</div>
+        <h3 className="mt-2 text-2xl font-bold">VC scorecard across six dimensions</h3>
+        <p className="mt-2 text-muted-foreground">How a top-tier investor would score this startup. {verdict?.label ? `Aligned with verdict: ${verdict.label}.` : ""}</p>
       </div>
-      {Object.entries(groups).map(([cat, qs]) => (
-        <div key={cat}>
-          <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-accent">{cat}</div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {qs.map((q: any, i: number) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ delay: i * 0.04 }}
-                className="card-hover relative overflow-hidden rounded-2xl border border-primary/30 bg-card/60 p-6 backdrop-blur">
-                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
-                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">VC Question · {String(i + 1).padStart(2, "0")}</div>
-                <p className="mt-3 text-lg font-semibold leading-snug">{q.question}</p>
-              </motion.div>
-            ))}
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="glass-strong relative flex items-center justify-center overflow-hidden rounded-2xl p-6 lg:col-span-2">
+          <RadarChart data={breakdown} />
+          <div className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.25em] text-accent">VC Scorecard</div>
+          <div className="absolute bottom-4 right-4 text-right">
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Average</div>
+            <div className="text-3xl font-extrabold text-gradient">{avg.toFixed(1)}<span className="text-sm text-muted-foreground">/10</span></div>
           </div>
         </div>
-      ))}
+        <div className="space-y-3 lg:col-span-3">
+          {breakdown.map((d, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+              className="card-hover rounded-2xl border border-border bg-card/50 p-5 backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <div className="font-bold">{d.dimension}</div>
+                <div className="font-mono text-sm font-bold text-accent">{d.score}/10</div>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-card/70">
+                <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (Number(d.score) || 0) * 10)}%` }} transition={{ duration: 0.9 }}
+                  className="h-full bg-gradient-neon" />
+              </div>
+              {d.note && <p className="mt-2 text-sm text-muted-foreground">{d.note}</p>}
+            </motion.div>
+          ))}
+        </div>
+      </div>
     </div>
+  );
+}
+
+function RadarChart({ data }: { data: { dimension: string; score: number }[] }) {
+  const size = 320;
+  const cx = size / 2, cy = size / 2;
+  const radius = 110;
+  const n = data.length;
+  const angle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / n;
+  const point = (i: number, value: number) => {
+    const r = (Math.max(0, Math.min(10, value)) / 10) * radius;
+    return [cx + r * Math.cos(angle(i)), cy + r * Math.sin(angle(i))] as const;
+  };
+  const gridLevels = [0.25, 0.5, 0.75, 1];
+  const polygon = data.map((d, i) => point(i, Number(d.score) || 0)).map(([x, y]) => `${x},${y}`).join(" ");
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <defs>
+        <linearGradient id="radarFill" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%" stopColor="#ec4899" stopOpacity="0.5" />
+          <stop offset="50%" stopColor="#a855f7" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.45" />
+        </linearGradient>
+        <linearGradient id="radarStroke" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%" stopColor="#ec4899" />
+          <stop offset="50%" stopColor="#a855f7" />
+          <stop offset="100%" stopColor="#22d3ee" />
+        </linearGradient>
+      </defs>
+      {/* grid rings */}
+      {gridLevels.map((lvl, i) => {
+        const pts = Array.from({ length: n }, (_, k) => {
+          const r = lvl * radius;
+          const a = angle(k);
+          return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+        }).join(" ");
+        return <polygon key={i} points={pts} fill="none" stroke="oklch(1 0 0 / 8%)" strokeWidth={1} />;
+      })}
+      {/* axes */}
+      {data.map((_, i) => {
+        const [x, y] = point(i, 10);
+        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="oklch(1 0 0 / 6%)" strokeWidth={1} />;
+      })}
+      {/* polygon */}
+      <motion.polygon
+        points={polygon}
+        fill="url(#radarFill)"
+        stroke="url(#radarStroke)"
+        strokeWidth={2}
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8 }}
+        style={{ transformOrigin: `${cx}px ${cy}px` }}
+      />
+      {/* points */}
+      {data.map((d, i) => {
+        const [x, y] = point(i, Number(d.score) || 0);
+        return <circle key={i} cx={x} cy={y} r={4} fill="#fff" stroke="url(#radarStroke)" strokeWidth={2} />;
+      })}
+      {/* labels */}
+      {data.map((d, i) => {
+        const [x, y] = point(i, 12.6);
+        const anchor = Math.abs(x - cx) < 6 ? "middle" : x > cx ? "start" : "end";
+        return (
+          <text key={i} x={x} y={y} textAnchor={anchor} dominantBaseline="middle"
+            className="fill-foreground/80" fontSize="10" fontFamily="ui-monospace,monospace" style={{ textTransform: "uppercase", letterSpacing: "0.12em" }}>
+            {d.dimension}
+          </text>
+        );
+      })}
+    </svg>
   );
 }
 
 /* -------------- shared -------------- */
 
-function ToneCard({ tone, title, detail, right, pulse, meta }: any) {
-  const map: Record<string, { text: string; border: string; bg: string; ring: string }> = {
-    success:     { text: "text-success",     border: "border-success/40",     bg: "bg-success/5",     ring: "bg-success" },
-    destructive: { text: "text-destructive", border: "border-destructive/40", bg: "bg-destructive/5", ring: "bg-destructive" },
-    warning:     { text: "text-warning",     border: "border-warning/40",     bg: "bg-warning/5",     ring: "bg-warning" },
-    accent:      { text: "text-accent",      border: "border-accent/40",      bg: "bg-accent/5",      ring: "bg-accent" },
-    primary:     { text: "text-primary",     border: "border-primary/40",     bg: "bg-primary/5",     ring: "bg-primary" },
-  };
-  const t = map[tone];
-  return (
-    <div className={`card-hover relative overflow-hidden rounded-2xl border ${t.border} ${t.bg} p-6 backdrop-blur`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          {pulse && <span className={`h-2 w-2 rounded-full ${t.ring} pulse-soft`} />}
-          <div className={`text-base font-bold ${t.text}`}>{title}</div>
-        </div>
-        {right}
-      </div>
-      <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{detail}</p>
-      {meta && <div className="mt-4 flex flex-wrap gap-2">{meta}</div>}
-    </div>
-  );
-}
-
-function MetaChip({ label, value, tone }: { label: string; value: string; tone: string }) {
+function MetaChip({ label, value, tone, icon: Icon }: { label: string; value: string; tone: string; icon?: any }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-3 py-1 text-[11px] font-bold">
+      {Icon && <Icon className="h-3 w-3 text-muted-foreground" />}
       <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
       <span className={tone}>{value}</span>
     </span>
@@ -549,19 +673,6 @@ function ScoreRing({ score }: { score: number }) {
         transition={{ duration: 1.2, ease: "easeOut" }} />
       <text x="120" y="132" textAnchor="middle" className="fill-foreground font-display" fontSize="58" fontWeight="800">{score}</text>
     </svg>
-  );
-}
-
-function Grid<T>({ items, render }: { items: T[]; render: (i: T) => React.ReactNode }) {
-  if (!items?.length) return <Empty />;
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {items.map((i, idx) => (
-        <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-          {render(i)}
-        </motion.div>
-      ))}
-    </div>
   );
 }
 
