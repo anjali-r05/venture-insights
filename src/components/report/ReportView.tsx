@@ -410,16 +410,23 @@ function OpportunitiesTab({ items }: { items: any[] }) {
               <Badge className="border-0 bg-gradient-neon text-background"><Zap className="mr-1 h-3 w-3" /> Quick Win</Badge>
             )}
           </div>
-          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{o.detail}</p>
+          {o.detail && <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{o.detail}</p>}
           <div className="mt-4 flex flex-wrap gap-2">
-            <MetaChip label="Revenue" value={o.revenue_impact ?? "—"} tone={impactTone(o.revenue_impact)} />
             <MetaChip label="Growth" value={o.growth_potential ?? "—"} tone={impactTone(o.growth_potential)} />
+            <MetaChip label="Revenue" value={o.revenue_impact ?? "—"} tone={impactTone(o.revenue_impact)} />
             <MetaChip label="Difficulty" value={o.difficulty ?? "—"} tone={difficultyTone(o.difficulty)} />
           </div>
+          {o.why_exists && <Sub label="Why this exists">{o.why_exists}</Sub>}
           {o.suggested_action && (
             <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-3">
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Suggested action</div>
               <div className="mt-1 text-sm text-foreground/90">{o.suggested_action}</div>
+            </div>
+          )}
+          {o.expected_outcome && (
+            <div className="mt-3 rounded-xl border border-success/30 bg-success/5 p-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-success">Expected outcome</div>
+              <div className="mt-1 text-sm text-foreground/90">{o.expected_outcome}</div>
             </div>
           )}
         </motion.div>
