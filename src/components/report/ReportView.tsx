@@ -25,10 +25,9 @@ const TABS = [
   { id: "strengths", label: "Strengths", icon: CheckCircle2 },
   { id: "risks", label: "Hidden Risks", icon: AlertTriangle },
   { id: "blindspots", label: "Blind Spots", icon: Eye },
-  { id: "opportunities", label: "Opportunities", icon: Lightbulb },
-  { id: "roadmap", label: "Validation Roadmap", icon: Calendar },
+  { id: "opportunities", label: "Opportunity Intelligence", icon: Lightbulb },
+  { id: "roadmap", label: "30-Day Action Plan", icon: Calendar },
   { id: "playbook", label: "Recommendations", icon: Target },
-  { id: "investor", label: "Investor Attractiveness", icon: Radar },
 ] as const;
 
 export function ReportView({ report, isPublic, readOnly, onShare, onCopy, busy, backHref }: Props) {
