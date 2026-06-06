@@ -115,7 +115,6 @@ export function ReportView({ report, isPublic, readOnly, onShare, onCopy, busy, 
           {tab === "opportunities" && <OpportunitiesTab items={report.opportunities} />}
           {tab === "roadmap" && <RoadmapTab items={report.validation_steps} />}
           {tab === "playbook" && <PlaybookTab items={report.strategic_recommendations} />}
-          {tab === "investor" && <InvestorAttractivenessTab readiness={readiness} verdict={verdict} />}
         </motion.div>
       </AnimatePresence>
 
