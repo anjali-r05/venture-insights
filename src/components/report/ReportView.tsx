@@ -208,9 +208,9 @@ function ReadinessRow({ label, value, tone }: { label: string; value?: string; t
 
 function levelTone(v?: string) {
   switch ((v ?? "").toLowerCase()) {
-    case "excellent": case "strong": case "high": return "text-success";
-    case "moderate": case "medium": return "text-warning";
-    case "low": case "weak": case "very low": case "critical": return "text-destructive";
+    case "excellent": case "high": case "strong": return "text-success";
+    case "medium": case "moderate": return "text-warning";
+    case "low": case "very low": case "weak": case "critical": return "text-destructive";
     default: return "text-muted-foreground";
   }
 }
