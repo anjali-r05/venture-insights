@@ -255,9 +255,12 @@ function TopPriorities({ items }: { items: any[] }) {
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
             className="card-hover relative overflow-hidden rounded-2xl border border-primary/30 bg-card/60 p-6 backdrop-blur">
             <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-neon opacity-20 blur-3xl" />
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">Priority #{i + 1}</div>
+            <div className="flex items-center justify-between">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">Priority #{i + 1}</div>
+              {p.priority_level && <PriorityBadge level={p.priority_level} />}
+            </div>
             <div className="mt-2 text-xl font-bold">{p.title}</div>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.detail}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.reason ?? p.detail}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <MetaChip label="Impact" value={p.impact ?? "Medium"} tone={impactTone(p.impact)} icon={TrendingUp} />
               <MetaChip label="Difficulty" value={p.difficulty ?? "Medium"} tone={difficultyTone(p.difficulty)} icon={Gauge} />
