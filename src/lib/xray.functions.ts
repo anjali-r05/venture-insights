@@ -155,7 +155,7 @@ Produce the Startup X-Ray JSON now. Every field is mandatory.`;
         opportunities: analysis.opportunities ?? [],
         validation_steps: analysis.validation_steps ?? [],
         strategic_recommendations: analysis.strategic_recommendations ?? [],
-        investor_questions: analysis.investor_questions ?? [],
+        investor_questions: [],
       })
       .select()
       .single();
