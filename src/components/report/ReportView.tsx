@@ -459,7 +459,7 @@ function RoadmapTab({ items }: { items: any[] }) {
                 <span className="chip text-success border-success/40"><ShieldCheck className="h-3 w-3" /> {w.success_metric}</span>
               )}
             </div>
-            <div className="mt-2 text-xl font-bold">{w.goal ?? w.title}</div>
+            <div className="mt-2 text-xl font-bold">{w.objective ?? w.goal ?? w.title}</div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Tasks</div>
@@ -480,6 +480,16 @@ function RoadmapTab({ items }: { items: any[] }) {
                 </div>
               )}
             </div>
+            {w.resources_needed?.length > 0 && (
+              <div className="mt-4">
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Resources needed</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {w.resources_needed.map((r: string, i: number) => (
+                    <span key={i} className="chip text-muted-foreground"><Package className="h-3 w-3" />{r}</span>
+                  ))}
+                </div>
+              </div>
+            )}
             {w.expected_outcome && (
               <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-3 text-sm">
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Expected outcome</span>
