@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   CheckCircle2, AlertTriangle, Eye, Lightbulb,
   Sparkles, ArrowLeft, Calendar, Download, Share2, Link2, Save, Printer,
-  Target, Zap, TrendingUp, ShieldCheck, Radar, Clock, Gauge,
+  Target, Zap, TrendingUp, ShieldCheck, Clock, Gauge, Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
