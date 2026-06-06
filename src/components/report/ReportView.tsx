@@ -190,7 +190,6 @@ function ScorePanel({ score, readiness }: { score: number; readiness: any }) {
             <ReadinessRow label="Risk Level" value={readiness.risk_level} tone={levelTone(readiness.risk_level)} />
             <ReadinessRow label="Market Readiness" value={readiness.market_readiness} tone={levelTone(readiness.market_readiness)} />
             <ReadinessRow label="Execution Readiness" value={readiness.execution_readiness} tone={levelTone(readiness.execution_readiness)} />
-            <ReadinessRow label="Investor Attractiveness" value={readiness.investor_attractiveness} tone={levelTone(readiness.investor_attractiveness)} />
           </div>
         </div>
       </div>
