@@ -521,6 +521,12 @@ function PlaybookTab({ items }: { items: any[] }) {
             <MetaChip label="Difficulty" value={r.difficulty ?? "—"} tone={difficultyTone(r.difficulty)} />
             <MetaChip label="Time" value={r.time_required ?? "—"} tone="text-muted-foreground" icon={Clock} />
           </div>
+          {r.expected_outcome && (
+            <div className="mt-4 rounded-xl border border-success/30 bg-success/5 p-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-success">Expected outcome</div>
+              <div className="mt-1 text-sm text-foreground/90">{r.expected_outcome}</div>
+            </div>
+          )}
         </motion.div>
       ))}
     </div>
