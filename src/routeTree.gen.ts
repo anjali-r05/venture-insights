@@ -25,6 +25,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedReportReportIdRouteImport } from './routes/_authenticated/report.$reportId'
+import { Route as AuthenticatedProductStrategyStrategyIdRouteImport } from './routes/_authenticated/product-strategy.$strategyId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
@@ -112,6 +113,12 @@ const AuthenticatedReportReportIdRoute =
     path: '/report/$reportId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProductStrategyStrategyIdRoute =
+  AuthenticatedProductStrategyStrategyIdRouteImport.update({
+    id: '/$strategyId',
+    path: '/$strategyId',
+    getParentRoute: () => AuthenticatedProductStrategyRoute,
+  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -134,13 +141,14 @@ export interface FileRoutesByFullPath {
   '/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/premium': typeof AuthenticatedPremiumRoute
-  '/product-strategy': typeof AuthenticatedProductStrategyRoute
+  '/product-strategy': typeof AuthenticatedProductStrategyRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/xray': typeof AuthenticatedXrayRoute
   '/r/$reportId': typeof RReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/product-strategy/$strategyId': typeof AuthenticatedProductStrategyStrategyIdRoute
   '/report/$reportId': typeof AuthenticatedReportReportIdRoute
 }
 export interface FileRoutesByTo {
@@ -153,13 +161,14 @@ export interface FileRoutesByTo {
   '/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/premium': typeof AuthenticatedPremiumRoute
-  '/product-strategy': typeof AuthenticatedProductStrategyRoute
+  '/product-strategy': typeof AuthenticatedProductStrategyRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/xray': typeof AuthenticatedXrayRoute
   '/r/$reportId': typeof RReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/product-strategy/$strategyId': typeof AuthenticatedProductStrategyStrategyIdRoute
   '/report/$reportId': typeof AuthenticatedReportReportIdRoute
 }
 export interface FileRoutesById {
@@ -174,13 +183,14 @@ export interface FileRoutesById {
   '/_authenticated/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
-  '/_authenticated/product-strategy': typeof AuthenticatedProductStrategyRoute
+  '/_authenticated/product-strategy': typeof AuthenticatedProductStrategyRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/xray': typeof AuthenticatedXrayRoute
   '/r/$reportId': typeof RReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/product-strategy/$strategyId': typeof AuthenticatedProductStrategyStrategyIdRoute
   '/_authenticated/report/$reportId': typeof AuthenticatedReportReportIdRoute
 }
 export interface FileRouteTypes {
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/r/$reportId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/product-strategy/$strategyId'
     | '/report/$reportId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/r/$reportId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/product-strategy/$strategyId'
     | '/report/$reportId'
   id:
     | '__root__'
@@ -241,6 +253,7 @@ export interface FileRouteTypes {
     | '/r/$reportId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/product-strategy/$strategyId'
     | '/_authenticated/report/$reportId'
   fileRoutesById: FileRoutesById
 }
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportReportIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/product-strategy/$strategyId': {
+      id: '/_authenticated/product-strategy/$strategyId'
+      path: '/$strategyId'
+      fullPath: '/product-strategy/$strategyId'
+      preLoaderRoute: typeof AuthenticatedProductStrategyStrategyIdRouteImport
+      parentRoute: typeof AuthenticatedProductStrategyRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -387,12 +407,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedProductStrategyRouteChildren {
+  AuthenticatedProductStrategyStrategyIdRoute: typeof AuthenticatedProductStrategyStrategyIdRoute
+}
+
+const AuthenticatedProductStrategyRouteChildren: AuthenticatedProductStrategyRouteChildren =
+  {
+    AuthenticatedProductStrategyStrategyIdRoute:
+      AuthenticatedProductStrategyStrategyIdRoute,
+  }
+
+const AuthenticatedProductStrategyRouteWithChildren =
+  AuthenticatedProductStrategyRoute._addFileChildren(
+    AuthenticatedProductStrategyRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFounderReadinessRoute: typeof AuthenticatedFounderReadinessRoute
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
-  AuthenticatedProductStrategyRoute: typeof AuthenticatedProductStrategyRoute
+  AuthenticatedProductStrategyRoute: typeof AuthenticatedProductStrategyRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedXrayRoute: typeof AuthenticatedXrayRoute
@@ -404,7 +439,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFounderReadinessRoute: AuthenticatedFounderReadinessRoute,
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
-  AuthenticatedProductStrategyRoute: AuthenticatedProductStrategyRoute,
+  AuthenticatedProductStrategyRoute:
+    AuthenticatedProductStrategyRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedXrayRoute: AuthenticatedXrayRoute,
