@@ -1,6 +1,6 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Telescope, History, User, Settings, Lock, LogOut, MessageSquareWarning,
+  LayoutDashboard, Telescope, History, User, Settings, Lock, LogOut, MessageSquareWarning, Compass,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -13,6 +13,7 @@ const main = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Startup X-Ray", url: "/xray", icon: Telescope },
   { title: "Founder Readiness", url: "/founder-readiness", icon: MessageSquareWarning },
+  { title: "Product Strategy", url: "/product-strategy", icon: Compass },
   { title: "History", url: "/history", icon: History },
 ];
 const account = [
