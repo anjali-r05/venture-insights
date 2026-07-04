@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -230,10 +230,10 @@ function LoadingScreen() {
     "Flagging the risks founders miss…",
   ];
   const [i, setI] = useState(0);
-  useState(() => {
+  useEffect(() => {
     const t = setInterval(() => setI(x => (x + 1) % messages.length), 2400);
     return () => clearInterval(t);
-  });
+  }, [messages.length]);
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center text-center fade-up">
       <div className="relative">
