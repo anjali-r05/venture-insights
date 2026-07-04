@@ -13,25 +13,36 @@ import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
+  }),
   component: AuthPage,
 });
 
+function useNextTarget() {
+  const { next } = Route.useSearch();
+  return next ?? "/dashboard";
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const next = useNextTarget();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/dashboard", replace: true });
+      if (data.user) window.location.replace(next);
     });
-  }, [navigate]);
+  }, [next]);
 
   const onGoogle = async () => {
     setLoading(true);
-    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/dashboard" });
+    const res = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin + "/auth?next=" + encodeURIComponent(next),
+    });
     if (res.error) { toast.error(res.error.message); setLoading(false); return; }
     if (res.redirected) return;
-    navigate({ to: "/dashboard" });
+    window.location.replace(next);
   };
 
   return (
@@ -70,8 +81,8 @@ function AuthPage() {
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            <TabsContent value="signin"><SignInForm /></TabsContent>
-            <TabsContent value="signup"><SignUpForm /></TabsContent>
+            <TabsContent value="signin"><SignInForm next={next} /></TabsContent>
+            <TabsContent value="signup"><SignUpForm next={next} /></TabsContent>
           </Tabs>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
@@ -83,8 +94,7 @@ function AuthPage() {
   );
 }
 
-function SignInForm() {
-  const navigate = useNavigate();
+function SignInForm({ next }: { next: string }) {
   const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const onSubmit = async (e: React.FormEvent) => {
@@ -93,7 +103,7 @@ function SignInForm() {
     setLoading(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Signed in");
-    navigate({ to: "/dashboard" });
+    window.location.assign(next);
   };
   return (
     <form onSubmit={onSubmit} className="mt-4 space-y-3">
@@ -106,8 +116,7 @@ function SignInForm() {
   );
 }
 
-function SignUpForm() {
-  const navigate = useNavigate();
+function SignUpForm({ next }: { next: string }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -120,14 +129,14 @@ function SignUpForm() {
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}${next}`,
         data: { full_name: fullName },
       },
     });
     setLoading(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Check your email to verify your account.");
-    navigate({ to: "/dashboard" });
+    window.location.assign(next);
   };
   return (
     <form onSubmit={onSubmit} className="mt-4 space-y-3">
