@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      product_strategies: {
+        Row: {
+          created_at: string
+          current_features: string | null
+          description: string | null
+          id: string
+          industry: string | null
+          product_name: string
+          stage: string | null
+          startup_id: string | null
+          strategy: Json
+          target_users: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_features?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          product_name: string
+          stage?: string | null
+          startup_id?: string | null
+          strategy: Json
+          target_users?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_features?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          product_name?: string
+          stage?: string | null
+          startup_id?: string | null
+          strategy?: Json
+          target_users?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_strategies_startup_id_fkey"
+            columns: ["startup_id"]
+            isOneToOne: false
+            referencedRelation: "startups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
