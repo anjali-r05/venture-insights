@@ -17,6 +17,7 @@ import { Route as RReportIdRouteImport } from './routes/r.$reportId'
 import { Route as AuthenticatedXrayRouteImport } from './routes/_authenticated/xray'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedProductStrategyRouteImport } from './routes/_authenticated/product-strategy'
 import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedFounderReadinessRouteImport } from './routes/_authenticated/founder-readiness'
@@ -66,6 +67,12 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProductStrategyRoute =
+  AuthenticatedProductStrategyRouteImport.update({
+    id: '/product-strategy',
+    path: '/product-strategy',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPremiumRoute = AuthenticatedPremiumRouteImport.update({
   id: '/premium',
   path: '/premium',
@@ -127,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/premium': typeof AuthenticatedPremiumRoute
+  '/product-strategy': typeof AuthenticatedProductStrategyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/xray': typeof AuthenticatedXrayRoute
@@ -145,6 +153,7 @@ export interface FileRoutesByTo {
   '/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/premium': typeof AuthenticatedPremiumRoute
+  '/product-strategy': typeof AuthenticatedProductStrategyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/xray': typeof AuthenticatedXrayRoute
@@ -165,6 +174,7 @@ export interface FileRoutesById {
   '/_authenticated/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
+  '/_authenticated/product-strategy': typeof AuthenticatedProductStrategyRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/xray': typeof AuthenticatedXrayRoute
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/founder-readiness'
     | '/history'
     | '/premium'
+    | '/product-strategy'
     | '/profile'
     | '/settings'
     | '/xray'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/founder-readiness'
     | '/history'
     | '/premium'
+    | '/product-strategy'
     | '/profile'
     | '/settings'
     | '/xray'
@@ -222,6 +234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/founder-readiness'
     | '/_authenticated/history'
     | '/_authenticated/premium'
+    | '/_authenticated/product-strategy'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
     | '/_authenticated/xray'
@@ -301,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/product-strategy': {
+      id: '/_authenticated/product-strategy'
+      path: '/product-strategy'
+      fullPath: '/product-strategy'
+      preLoaderRoute: typeof AuthenticatedProductStrategyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/premium': {
       id: '/_authenticated/premium'
       path: '/premium'
@@ -372,6 +392,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFounderReadinessRoute: typeof AuthenticatedFounderReadinessRoute
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
+  AuthenticatedProductStrategyRoute: typeof AuthenticatedProductStrategyRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedXrayRoute: typeof AuthenticatedXrayRoute
@@ -383,6 +404,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFounderReadinessRoute: AuthenticatedFounderReadinessRoute,
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
+  AuthenticatedProductStrategyRoute: AuthenticatedProductStrategyRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedXrayRoute: AuthenticatedXrayRoute,
