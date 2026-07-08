@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RReportIdRouteImport } from './routes/r.$reportId'
+import { Route as ApiFounderTranscribeRouteImport } from './routes/api/founder-transcribe'
 import { Route as AuthenticatedXrayRouteImport } from './routes/_authenticated/xray'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -51,6 +52,11 @@ const IndexRoute = IndexRouteImport.update({
 const RReportIdRoute = RReportIdRouteImport.update({
   id: '/r/$reportId',
   path: '/r/$reportId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFounderTranscribeRoute = ApiFounderTranscribeRouteImport.update({
+  id: '/api/founder-transcribe',
+  path: '/api/founder-transcribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedXrayRoute = AuthenticatedXrayRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/xray': typeof AuthenticatedXrayRoute
+  '/api/founder-transcribe': typeof ApiFounderTranscribeRoute
   '/r/$reportId': typeof RReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/xray': typeof AuthenticatedXrayRoute
+  '/api/founder-transcribe': typeof ApiFounderTranscribeRoute
   '/r/$reportId': typeof RReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/xray': typeof AuthenticatedXrayRoute
+  '/api/founder-transcribe': typeof ApiFounderTranscribeRoute
   '/r/$reportId': typeof RReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/xray'
+    | '/api/founder-transcribe'
     | '/r/$reportId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/xray'
+    | '/api/founder-transcribe'
     | '/r/$reportId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/settings'
     | '/_authenticated/xray'
+    | '/api/founder-transcribe'
     | '/r/$reportId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -264,6 +276,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ApiFounderTranscribeRoute: typeof ApiFounderTranscribeRoute
   RReportIdRoute: typeof RReportIdRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -304,6 +317,13 @@ declare module '@tanstack/react-router' {
       path: '/r/$reportId'
       fullPath: '/r/$reportId'
       preLoaderRoute: typeof RReportIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/founder-transcribe': {
+      id: '/api/founder-transcribe'
+      path: '/api/founder-transcribe'
+      fullPath: '/api/founder-transcribe'
+      preLoaderRoute: typeof ApiFounderTranscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/xray': {
@@ -458,6 +478,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ApiFounderTranscribeRoute: ApiFounderTranscribeRoute,
   RReportIdRoute: RReportIdRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
