@@ -273,7 +273,7 @@ function FounderReadinessPage() {
             <Button variant="outline" onClick={() => setMuted(m => !m)} className="gap-2">
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />} {muted ? "Unmute AI" : "Mute AI"}
             </Button>
-            <Button variant="destructive" onClick={() => finish(messages)} disabled={phase === "finalizing" || messages.filter(m => m.role === "user").length < 1}>
+            <Button variant="destructive" onClick={() => finish(messages)} disabled={messages.filter(m => m.role === "user").length < 1}>
               End Interview
             </Button>
           </div>
