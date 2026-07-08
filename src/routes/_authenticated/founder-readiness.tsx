@@ -163,41 +163,98 @@ function FounderReadinessPage() {
   }, [messages, thinking, turnCount, askNext]);
 
   // Voice input using Web Speech API
-  const toggleMic = useCallback(() => {
+  const finalTranscriptRef = useRef("");
+  const manualStopRef = useRef(false);
+
+  const toggleMic = useCallback(async () => {
     if (typeof window === "undefined") return;
     const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
-      toast.error("Voice input not supported in this browser. Please type instead.");
+      toast.error("Voice input isn't supported in this browser. Try Chrome, Edge, or Safari — or type your answer.");
       return;
     }
+
+    // Stop mode: user clicked mic while listening → stop and submit whatever we have
     if (listening && recognitionRef.current) {
-      recognitionRef.current.stop();
+      manualStopRef.current = true;
+      try { recognitionRef.current.stop(); } catch { /* noop */ }
       return;
     }
+
+    // Cancel any AI speech so the mic doesn't pick it up
+    try { window.speechSynthesis?.cancel(); } catch { /* noop */ }
+    setAiSpeaking(false);
+
+    // Proactively request mic permission so we get a real error instead of a silent no-op
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop());
+    } catch (err: any) {
+      const name = err?.name ?? "";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        toast.error("Microphone blocked. Allow mic access in your browser settings and try again.");
+      } else if (name === "NotFoundError") {
+        toast.error("No microphone detected on this device.");
+      } else {
+        toast.error("Couldn't access the microphone. Please type your answer.");
+      }
+      return;
+    }
+
     const rec = new SR();
     rec.lang = "en-US";
     rec.interimResults = true;
-    rec.continuous = false;
-    let finalText = "";
+    rec.continuous = true; // keep listening until user taps mic again
+    finalTranscriptRef.current = "";
+    manualStopRef.current = false;
+
+    rec.onstart = () => setListening(true);
     rec.onresult = (e: any) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalText += t;
+        if (e.results[i].isFinal) finalTranscriptRef.current += t + " ";
         else interim += t;
       }
-      setInput((finalText + interim).trim());
+      setInput((finalTranscriptRef.current + interim).trim());
     };
-    rec.onerror = () => { setListening(false); };
+    rec.onerror = (e: any) => {
+      const err = e?.error;
+      if (err === "not-allowed" || err === "service-not-allowed") {
+        toast.error("Microphone permission was denied.");
+      } else if (err === "no-speech") {
+        toast.message("I didn't hear anything — tap the mic and try again.");
+      } else if (err && err !== "aborted") {
+        toast.error(`Voice input error: ${err}`);
+      }
+      setListening(false);
+    };
     rec.onend = () => {
       setListening(false);
-      const t = finalText.trim();
-      if (t) submitAnswer(t);
+      const text = finalTranscriptRef.current.trim();
+      finalTranscriptRef.current = "";
+      // Only auto-submit when the user manually stopped (tapped mic) AND we captured text
+      if (manualStopRef.current && text) {
+        setInput("");
+        submitAnswer(text);
+      }
+      manualStopRef.current = false;
     };
+
     recognitionRef.current = rec;
-    rec.start();
-    setListening(true);
+    try {
+      rec.start();
+    } catch (err) {
+      toast.error("Couldn't start voice input. Please try again.");
+      setListening(false);
+    }
   }, [listening, submitAnswer]);
+
+  // Cleanup on unmount
+  useEffect(() => () => {
+    try { recognitionRef.current?.stop(); } catch { /* noop */ }
+    try { window.speechSynthesis?.cancel(); } catch { /* noop */ }
+  }, []);
 
   const progressPct = Math.min(100, Math.round((turnCount / 12) * 100));
 
@@ -216,7 +273,7 @@ function FounderReadinessPage() {
             <Button variant="outline" onClick={() => setMuted(m => !m)} className="gap-2">
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />} {muted ? "Unmute AI" : "Mute AI"}
             </Button>
-            <Button variant="destructive" onClick={() => finish(messages)} disabled={messages.length < 2}>
+            <Button variant="destructive" onClick={() => finish(messages)} disabled={messages.filter(m => m.role === "user").length < 1}>
               End Interview
             </Button>
           </div>
