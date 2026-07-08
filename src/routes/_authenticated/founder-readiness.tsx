@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Mic, MicOff, Send, Sparkles, Play, Volume2, VolumeX, Loader2,
+  Mic, MicOff, Send, Sparkles, Play, Volume2, VolumeX, Loader2, ExternalLink,
   Brain, Trophy, TrendingUp, AlertTriangle, Lightbulb, Target, Quote,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,11 +62,19 @@ function FounderReadinessPage() {
   const [aiSpeaking, setAiSpeaking] = useState(false);
   const [thinking, setThinking] = useState(false);
   const [listening, setListening] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [micError, setMicError] = useState<string | null>(null);
   const [report, setReport] = useState<any>(null);
   const [turnCount, setTurnCount] = useState(0);
 
   const transcriptRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const silentGainRef = useRef<GainNode | null>(null);
+  const pcmChunksRef = useRef<Float32Array[]>([]);
+  const inputSampleRateRef = useRef(44100);
   const mutedRef = useRef(muted);
   useEffect(() => { mutedRef.current = muted; }, [muted]);
 
@@ -144,6 +152,7 @@ function FounderReadinessPage() {
     setMessages([]);
     setScores({});
     setReport(null);
+    setMicError(null);
     setTurnCount(0);
     setPhase("interview");
     // Prime voices for TTS
@@ -162,99 +171,196 @@ function FounderReadinessPage() {
     await askNext(newHistory, nextTurnCount);
   }, [messages, thinking, turnCount, askNext]);
 
-  // Voice input using Web Speech API
-  const finalTranscriptRef = useRef("");
-  const manualStopRef = useRef(false);
+  const stopAudioCapture = useCallback(async () => {
+    try { processorRef.current?.disconnect(); } catch { /* noop */ }
+    try { sourceRef.current?.disconnect(); } catch { /* noop */ }
+    try { silentGainRef.current?.disconnect(); } catch { /* noop */ }
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    if (audioContextRef.current?.state !== "closed") {
+      await audioContextRef.current?.close().catch(() => undefined);
+    }
+    processorRef.current = null;
+    sourceRef.current = null;
+    silentGainRef.current = null;
+    streamRef.current = null;
+    audioContextRef.current = null;
+  }, []);
+
+  const transcribeRecording = useCallback(async (audioBlob: Blob) => {
+    setTranscribing(true);
+    setMicError(null);
+    setInput("");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Please sign in again before using voice input.");
+
+      const formData = new FormData();
+      formData.append("file", audioBlob, "founder-answer.wav");
+      const response = await fetch("/api/founder-transcribe", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const message = await response.text().catch(() => "Transcription failed");
+        throw new Error(message || "Transcription failed");
+      }
+      if (!response.body) throw new Error("No transcription response received");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let transcript = "";
+
+      const consumeLine = (line: string) => {
+        if (!line.startsWith("data:")) return;
+        const raw = line.slice(5).trim();
+        if (!raw || raw === "[DONE]") return;
+        try {
+          const event = JSON.parse(raw);
+          if (event.type === "transcript.text.delta" && typeof event.delta === "string") {
+            transcript += event.delta;
+            setInput(transcript.trimStart());
+          }
+          if (event.type === "transcript.text.done" && typeof event.text === "string") {
+            transcript = event.text;
+            setInput(transcript.trim());
+          }
+        } catch {
+          // Ignore heartbeat or provider-specific SSE lines.
+        }
+      };
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop() ?? "";
+        lines.forEach(consumeLine);
+      }
+      buffer.split(/\r?\n/).forEach(consumeLine);
+
+      const clean = transcript.trim();
+      if (!clean) throw new Error("I couldn't hear a clear answer. Please try again or type it.");
+      setInput("");
+      await submitAnswer(clean);
+    } catch (err: any) {
+      const message = err?.message ?? "Voice transcription failed. Please try again or type your answer.";
+      setMicError(message);
+      toast.error(message);
+    } finally {
+      setTranscribing(false);
+    }
+  }, [submitAnswer]);
 
   const toggleMic = useCallback(async () => {
     if (typeof window === "undefined") return;
-    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) {
-      toast.error("Voice input isn't supported in this browser. Try Chrome, Edge, or Safari — or type your answer.");
+
+    if (listening) {
+      setListening(false);
+      const chunks = pcmChunksRef.current;
+      pcmChunksRef.current = [];
+      const sampleRate = inputSampleRateRef.current;
+      await stopAudioCapture();
+      const audioBlob = encodeWav(chunks, sampleRate);
+      if (audioBlob.size < 2048) {
+        const message = "That recording was empty — please try again.";
+        setMicError(message);
+        toast.error(message);
+        return;
+      }
+      await transcribeRecording(audioBlob);
       return;
     }
 
-    // Stop mode: user clicked mic while listening → stop and submit whatever we have
-    if (listening && recognitionRef.current) {
-      manualStopRef.current = true;
-      try { recognitionRef.current.stop(); } catch { /* noop */ }
-      return;
-    }
-
-    // Cancel any AI speech so the mic doesn't pick it up
+    setMicError(null);
     try { window.speechSynthesis?.cancel(); } catch { /* noop */ }
     setAiSpeaking(false);
 
-    // Proactively request mic permission so we get a real error instead of a silent no-op
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(t => t.stop());
-    } catch (err: any) {
-      const name = err?.name ?? "";
-      if (name === "NotAllowedError" || name === "SecurityError") {
-        toast.error("Microphone blocked. Allow mic access in your browser settings and try again.");
-      } else if (name === "NotFoundError") {
-        toast.error("No microphone detected on this device.");
-      } else {
-        toast.error("Couldn't access the microphone. Please type your answer.");
-      }
+    const policy = (document as any).permissionsPolicy ?? (document as any).featurePolicy;
+    const policyAllowsMic = typeof policy?.allowsFeature === "function" ? policy.allowsFeature("microphone") : true;
+    if (!policyAllowsMic) {
+      const message = "Microphone is blocked inside this embedded preview. Open this interview in a new tab, then tap the mic again.";
+      setMicError(message);
+      toast.error(message);
       return;
     }
 
-    const rec = new SR();
-    rec.lang = "en-US";
-    rec.interimResults = true;
-    rec.continuous = true; // keep listening until user taps mic again
-    finalTranscriptRef.current = "";
-    manualStopRef.current = false;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      const message = "This browser does not support microphone recording. Please use Chrome, Edge, or Safari, or type your answer.";
+      setMicError(message);
+      toast.error(message);
+      return;
+    }
 
-    rec.onstart = () => setListening(true);
-    rec.onresult = (e: any) => {
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalTranscriptRef.current += t + " ";
-        else interim += t;
-      }
-      setInput((finalTranscriptRef.current + interim).trim());
-    };
-    rec.onerror = (e: any) => {
-      const err = e?.error;
-      if (err === "not-allowed" || err === "service-not-allowed") {
-        toast.error("Microphone permission was denied.");
-      } else if (err === "no-speech") {
-        toast.message("I didn't hear anything — tap the mic and try again.");
-      } else if (err && err !== "aborted") {
-        toast.error(`Voice input error: ${err}`);
-      }
-      setListening(false);
-    };
-    rec.onend = () => {
-      setListening(false);
-      const text = finalTranscriptRef.current.trim();
-      finalTranscriptRef.current = "";
-      // Only auto-submit when the user manually stopped (tapped mic) AND we captured text
-      if (manualStopRef.current && text) {
-        setInput("");
-        submitAnswer(text);
-      }
-      manualStopRef.current = false;
-    };
-
-    recognitionRef.current = rec;
     try {
-      rec.start();
-    } catch (err) {
-      toast.error("Couldn't start voice input. Please try again.");
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextCtor) throw new Error("Audio recording is not supported in this browser.");
+      const ctx = new AudioContextCtor();
+      const source = ctx.createMediaStreamSource(stream);
+      const processor = ctx.createScriptProcessor(4096, 1, 1);
+      const silentGain = ctx.createGain();
+      silentGain.gain.value = 0;
+
+      pcmChunksRef.current = [];
+      inputSampleRateRef.current = ctx.sampleRate;
+      processor.onaudioprocess = (event) => {
+        const inputBuffer = event.inputBuffer.getChannelData(0);
+        pcmChunksRef.current.push(new Float32Array(inputBuffer));
+      };
+
+      source.connect(processor);
+      processor.connect(silentGain);
+      silentGain.connect(ctx.destination);
+
+      streamRef.current = stream;
+      audioContextRef.current = ctx;
+      sourceRef.current = source;
+      processorRef.current = processor;
+      silentGainRef.current = silentGain;
+      setListening(true);
+      toast.message("Recording your answer… tap the mic again when you're done.");
+    } catch (err: any) {
+      const name = err?.name ?? "";
+      await stopAudioCapture();
+      if (name === "NotAllowedError" || name === "SecurityError" || name === "PermissionDeniedError") {
+        const message = "Microphone blocked. Allow mic access in your browser settings, or open the interview in a new tab and try again.";
+        setMicError(message);
+        toast.error(message);
+      } else if (name === "NotFoundError") {
+        const message = "No microphone detected on this device.";
+        setMicError(message);
+        toast.error(message);
+      } else {
+        const message = err?.message ?? "Couldn't access the microphone. Please type your answer.";
+        setMicError(message);
+        toast.error(message);
+      }
       setListening(false);
     }
-  }, [listening, submitAnswer]);
+  }, [listening, stopAudioCapture, transcribeRecording]);
 
   // Cleanup on unmount
   useEffect(() => () => {
-    try { recognitionRef.current?.stop(); } catch { /* noop */ }
+    void stopAudioCapture();
     try { window.speechSynthesis?.cancel(); } catch { /* noop */ }
+  }, [stopAudioCapture]);
+
+  const openVoiceTab = useCallback(() => {
+    window.open(window.location.href, "_blank", "noopener,noreferrer");
   }, []);
+
+  const endInterview = useCallback(() => {
+    if (messages.filter(m => m.role === "user").length < 1) {
+      toast.message("Answer at least one investor question before ending the interview.");
+      return;
+    }
+    void finish(messages);
+  }, [finish, messages]);
 
   const progressPct = Math.min(100, Math.round((turnCount / 12) * 100));
 
@@ -273,7 +379,7 @@ function FounderReadinessPage() {
             <Button variant="outline" onClick={() => setMuted(m => !m)} className="gap-2">
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />} {muted ? "Unmute AI" : "Mute AI"}
             </Button>
-            <Button variant="destructive" onClick={() => finish(messages)} disabled={messages.filter(m => m.role === "user").length < 1}>
+            <Button variant="destructive" onClick={endInterview}>
               End Interview
             </Button>
           </div>
@@ -344,20 +450,30 @@ function FounderReadinessPage() {
                 className="glass-strong flex items-center gap-2 rounded-2xl p-3"
               >
                 <Button type="button" variant={listening ? "destructive" : "outline"} size="icon"
-                  onClick={toggleMic} className="h-12 w-12 rounded-full" disabled={thinking}>
+                  onClick={toggleMic} className="h-12 w-12 rounded-full" disabled={thinking || transcribing}>
                   {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                 </Button>
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={listening ? "Listening… speak now" : "Type your answer or press the mic to speak"}
+                  placeholder={listening ? "Recording… tap the mic again to submit" : transcribing ? "Transcribing your answer…" : "Type your answer or press the mic to speak"}
                   className="h-12 flex-1 border-primary/20 bg-background/40 text-base"
-                  disabled={thinking}
+                  disabled={thinking || transcribing}
                 />
-                <Button type="submit" className="btn-neon h-12 gap-2 px-5" disabled={!input.trim() || thinking}>
-                  <Send className="h-4 w-4" /> Send
+                <Button type="submit" className="btn-neon h-12 gap-2 px-5" disabled={!input.trim() || thinking || transcribing || listening}>
+                  {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send
                 </Button>
               </form>
+            )}
+            {phase === "interview" && micError && (
+              <div className="glass-strong flex flex-col gap-3 rounded-2xl border border-amber-300/30 p-4 text-sm text-amber-100 md:flex-row md:items-center md:justify-between">
+                <span>{micError}</span>
+                {micError.includes("new tab") && (
+                  <Button type="button" variant="outline" onClick={openVoiceTab} className="shrink-0 gap-2 border-amber-300/40 text-amber-100">
+                    <ExternalLink className="h-4 w-4" /> Open Voice Tab
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 
@@ -370,6 +486,74 @@ function FounderReadinessPage() {
       )}
     </div>
   );
+}
+
+function encodeWav(chunks: Float32Array[], inputSampleRate: number) {
+  const targetSampleRate = 16000;
+  const samples = mergeAudioChunks(chunks);
+  const downsampled = downsampleAudio(samples, inputSampleRate, targetSampleRate);
+  const buffer = new ArrayBuffer(44 + downsampled.length * 2);
+  const view = new DataView(buffer);
+
+  writeAscii(view, 0, "RIFF");
+  view.setUint32(4, 36 + downsampled.length * 2, true);
+  writeAscii(view, 8, "WAVE");
+  writeAscii(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, targetSampleRate, true);
+  view.setUint32(28, targetSampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeAscii(view, 36, "data");
+  view.setUint32(40, downsampled.length * 2, true);
+
+  let offset = 44;
+  for (const sample of downsampled) {
+    const clamped = Math.max(-1, Math.min(1, sample));
+    view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff, true);
+    offset += 2;
+  }
+
+  return new Blob([view], { type: "audio/wav" });
+}
+
+function mergeAudioChunks(chunks: Float32Array[]) {
+  const length = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const merged = new Float32Array(length);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return merged;
+}
+
+function downsampleAudio(samples: Float32Array, inputSampleRate: number, outputSampleRate: number) {
+  if (inputSampleRate <= outputSampleRate) return samples;
+  const ratio = inputSampleRate / outputSampleRate;
+  const newLength = Math.round(samples.length / ratio);
+  const result = new Float32Array(newLength);
+  let offsetResult = 0;
+  let offsetBuffer = 0;
+  while (offsetResult < result.length) {
+    const nextOffsetBuffer = Math.round((offsetResult + 1) * ratio);
+    let accum = 0;
+    let count = 0;
+    for (let i = offsetBuffer; i < nextOffsetBuffer && i < samples.length; i++) {
+      accum += samples[i];
+      count++;
+    }
+    result[offsetResult] = count ? accum / count : 0;
+    offsetResult++;
+    offsetBuffer = nextOffsetBuffer;
+  }
+  return result;
+}
+
+function writeAscii(view: DataView, offset: number, text: string) {
+  for (let i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i));
 }
 
 function IdleHero({ onStart, startupName }: { onStart: () => void; startupName?: string | null }) {
