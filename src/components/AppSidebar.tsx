@@ -25,6 +25,7 @@ const account = [
 export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
+  const gpsUnlocked = useFounderGpsUnlocked();
   const isActive = (u: string) => path === u || path.startsWith(u + "/");
 
   const handleLogout = async () => {
