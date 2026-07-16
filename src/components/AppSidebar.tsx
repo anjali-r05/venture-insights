@@ -77,6 +77,17 @@ export function AppSidebar() {
           <SidebarGroupLabel>Premium</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              {gpsUnlocked && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/founder-gps")}>
+                    <Link to="/founder-gps">
+                      <Compass className="h-4 w-4" />
+                      <span>Founder GPS</span>
+                      <Crown className="ml-auto h-3 w-3 text-accent" />
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/premium")}>
                   <Link to="/premium">
