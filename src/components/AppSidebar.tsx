@@ -1,7 +1,8 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Telescope, History, User, Settings, Lock, LogOut, MessageSquareWarning, Compass,
+  LayoutDashboard, Telescope, History, User, Settings, Lock, LogOut, MessageSquareWarning, Compass, Crown,
 } from "lucide-react";
+import { useFounderGpsUnlocked } from "@/lib/founder-gps-unlock";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
@@ -24,6 +25,7 @@ const account = [
 export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
+  const gpsUnlocked = useFounderGpsUnlocked();
   const isActive = (u: string) => path === u || path.startsWith(u + "/");
 
   const handleLogout = async () => {
@@ -75,6 +77,17 @@ export function AppSidebar() {
           <SidebarGroupLabel>Premium</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              {gpsUnlocked && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/founder-gps")}>
+                    <Link to="/founder-gps">
+                      <Compass className="h-4 w-4" />
+                      <span>Founder GPS</span>
+                      <Crown className="ml-auto h-3 w-3 text-accent" />
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/premium")}>
                   <Link to="/premium">

@@ -22,6 +22,7 @@ import { Route as AuthenticatedProductStrategyRouteImport } from './routes/_auth
 import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedFounderReadinessRouteImport } from './routes/_authenticated/founder-readiness'
+import { Route as AuthenticatedFounderGpsRouteImport } from './routes/_authenticated/founder-gps'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -96,6 +97,11 @@ const AuthenticatedFounderReadinessRoute =
     path: '/founder-readiness',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFounderGpsRoute = AuthenticatedFounderGpsRouteImport.update({
+  id: '/founder-gps',
+  path: '/founder-gps',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/founder-gps': typeof AuthenticatedFounderGpsRoute
   '/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/premium': typeof AuthenticatedPremiumRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/founder-gps': typeof AuthenticatedFounderGpsRoute
   '/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/premium': typeof AuthenticatedPremiumRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/founder-gps': typeof AuthenticatedFounderGpsRoute
   '/_authenticated/founder-readiness': typeof AuthenticatedFounderReadinessRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/dashboard'
+    | '/founder-gps'
     | '/founder-readiness'
     | '/history'
     | '/premium'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/dashboard'
+    | '/founder-gps'
     | '/founder-readiness'
     | '/history'
     | '/premium'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/dashboard'
+    | '/_authenticated/founder-gps'
     | '/_authenticated/founder-readiness'
     | '/_authenticated/history'
     | '/_authenticated/premium'
@@ -375,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFounderReadinessRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/founder-gps': {
+      id: '/_authenticated/founder-gps'
+      path: '/founder-gps'
+      fullPath: '/founder-gps'
+      preLoaderRoute: typeof AuthenticatedFounderGpsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -444,6 +463,7 @@ const AuthenticatedProductStrategyRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFounderGpsRoute: typeof AuthenticatedFounderGpsRoute
   AuthenticatedFounderReadinessRoute: typeof AuthenticatedFounderReadinessRoute
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
@@ -456,6 +476,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFounderGpsRoute: AuthenticatedFounderGpsRoute,
   AuthenticatedFounderReadinessRoute: AuthenticatedFounderReadinessRoute,
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
