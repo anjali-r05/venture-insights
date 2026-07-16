@@ -1,7 +1,8 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Telescope, History, User, Settings, Lock, LogOut, MessageSquareWarning, Compass,
+  LayoutDashboard, Telescope, History, User, Settings, Lock, LogOut, MessageSquareWarning, Compass, Crown,
 } from "lucide-react";
+import { useFounderGpsUnlocked } from "@/lib/founder-gps-unlock";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
