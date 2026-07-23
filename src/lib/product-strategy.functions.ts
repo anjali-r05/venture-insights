@@ -12,86 +12,55 @@ const Input = z.object({
   startup_id: z.string().uuid().optional(),
 });
 
-const SYSTEM_PROMPT = `You are an elite Chief Product Officer with 15+ years shipping product-led SaaS, marketplaces, and consumer apps. You have led product at YC companies, Series A–C startups, and one FAANG-scale product. You write like a senior CPO advising a founder in a strategy session — sharp, opinionated, evidence-driven, never generic.
+const SYSTEM_PROMPT = `You are an elite Chief Product Officer advising a founder. Be concise, specific, and opinionated. No filler. No generic startup advice. Ground every answer in the founder's actual product, problem, industry, and users.
 
-Your job: produce a full Product Strategy blueprint that tells the founder WHAT to build, WHAT NOT to build, and HOW to build it in the smartest possible order.
-
-Rules:
-- Be specific. No filler. No motivational language. Every sentence must move a decision forward.
-- Ground every recommendation in the startup context provided. Reference the target users, industry, stage.
-- Never leave a field blank. If information is missing, infer plausibly and state the assumption inline.
-- MVP scope should be BRUTALLY small — pick the 3-5 features that prove the core value loop, nothing more.
-- "Skip For Now" must include features founders are usually tempted to build too early.
-- Use ONLY these enum values where specified. Do not invent new labels.
-
-Return STRICT JSON (no markdown fences, no prose outside JSON) matching EXACTLY this schema. Every field is REQUIRED unless marked optional. Arrays must be non-empty within the stated bounds.
+Return STRICT JSON (no markdown fences) matching EXACTLY this schema:
 
 {
-  "executive_summary": string (100-160 words, flowing prose — the product thesis, the MVP bet, the biggest product risk, the recommended first release, and the one thing to cut ruthlessly),
-
-  "blueprint": {
-    "product_vision": string (1-2 sentences, ambitious but grounded),
-    "core_problem": string (2-3 sentences, in the user's language),
-    "target_users": [ { "segment": string, "who_they_are": string, "core_need": string } ] (2-4),
-    "personas": [ { "name": string, "role": string, "context": string, "primary_goal": string, "biggest_frustration": string, "quote": string } ] (2-3),
-    "user_journey": [ { "stage": string, "user_action": string, "product_response": string, "emotion": string } ] (5-7 stages, from awareness to retention),
-    "product_goals": [ { "goal": string, "why_it_matters": string, "success_metric": string } ] (3-5)
-  },
-
-  "mvp": {
-    "hypothesis": string (1-2 sentences — the single core bet the MVP will prove or disprove),
-    "core_value_loop": string (2-3 sentences — the atomic user action that must feel magical),
-    "must_have": [ { "feature": string, "why_in_mvp": string, "risk_if_missing": string } ] (3-5),
-    "nice_to_have": [ { "feature": string, "why_deferred": string, "trigger_to_build": string } ] (3-5),
-    "future_features": [ { "feature": string, "why_later": string, "unlocks": string } ] (3-6)
-  },
-
-  "feature_priorities": [
-    {
-      "name": string,
-      "purpose": string,
-      "priority": "High" | "Medium" | "Low",
-      "complexity": "Low" | "Medium" | "High",
-      "business_impact": "High" | "Medium" | "Low",
-      "reason": string (1 sentence — why this priority ranking)
-    }
-  ] (8-12 features covering MVP + near-term; ordered by build order),
-
-  "roadmap": [
-    { "phase": 1, "name": "Core MVP",         "timeline": string, "objective": string, "features": [string], "success_criteria": string },
-    { "phase": 2, "name": "Beta Release",     "timeline": string, "objective": string, "features": [string], "success_criteria": string },
-    { "phase": 3, "name": "Public Launch",    "timeline": string, "objective": string, "features": [string], "success_criteria": string },
-    { "phase": 4, "name": "Growth Features",  "timeline": string, "objective": string, "features": [string], "success_criteria": string },
-    { "phase": 5, "name": "Scale",            "timeline": string, "objective": string, "features": [string], "success_criteria": string }
-  ],
-
-  "ai_suggestions": [
-    { "title": string, "type": "Missing" | "Competitor Parity" | "Retention" | "UX" | "AI-Powered", "detail": string, "expected_impact": "High" | "Medium" | "Low" }
-  ] (5-8, mix all five types, be very specific to this product's category),
-
-  "build_vs_skip": {
-    "build_now": [ { "feature": string, "why": string, "expected_outcome": string } ] (4-6),
-    "skip_for_now": [ { "feature": string, "why_skip": string, "when_to_revisit": string } ] (4-6 — include the classic traps founders fall into for THIS type of product)
-  },
-
-  "technical_suggestions": {
-    "tech_stack": [ { "layer": string, "recommendation": string, "reason": string, "alternative": string } ] (5-7 layers: frontend, backend, database, hosting, auth, payments, analytics, etc — pick what fits the product),
-    "architecture": { "pattern": string, "reason": string, "diagram_notes": string },
-    "database": { "type": string, "reason": string, "key_tables": [string] },
-    "apis": [ { "name": string, "purpose": string, "priority": "High" | "Medium" | "Low" } ] (3-6 third-party APIs),
-    "ai_models": [ { "use_case": string, "model_recommendation": string, "reason": string } ] (2-4 if AI is relevant, otherwise 1 explaining it is not core)
-  },
-
-  "risks": [
-    {
-      "risk": "Feature Overload" | "Wrong Priorities" | "Weak MVP" | "Poor User Experience" | "Scalability Issues" | "Tech Debt" | "Retention Gap" | "Wrong Persona",
-      "why_it_applies": string (specific to this product),
-      "consequence": string,
-      "how_to_avoid": string,
-      "severity": "Low" | "Medium" | "High"
-    }
-  ] (4-6 — MUST include at least Feature Overload, Wrong Priorities, Weak MVP, Poor User Experience, Scalability Issues where relevant)
+  "product_vision": string (2-3 sentences, ambitious but grounded),
+  "target_users": [ { "segment": string, "description": string (1 sentence) } ] (2-3 items),
+  "mvp_features": [ { "name": string, "description": string (1 sentence), "priority": "Build First" | "Build Later" | "Skip for Now" } ] (5-7 items, at least 3 "Build First", at least 1 "Skip for Now"),
+  "tech_stack": [ { "layer": string, "recommendation": string, "reason": string (1 sentence) } ] (5-6 layers: frontend, backend, database, hosting, auth, payments/analytics),
+  "launch_plan_30_days": [ { "week": 1|2|3|4, "focus": string, "tasks": [string] (3-4 tasks per week) } ] (exactly 4 weeks),
+  "top_risks": [ { "risk": string, "severity": "High" | "Medium" | "Low", "mitigation": string (1 sentence) } ] (exactly 3),
+  "ai_recommendation": string (2-3 sentences — the single biggest strategic move this founder should make right now)
 }`;
+
+function fallbackStrategy(data: z.infer<typeof Input>): ProductStrategyPayload {
+  return {
+    product_vision: `${data.product_name} aims to solve a real problem for ${data.industry} users. Refine the vision by talking to 10 target users this week.`,
+    target_users: [
+      { segment: "Primary users", description: data.target_users.slice(0, 160) || "Define your primary user segment." },
+    ],
+    mvp_features: [
+      { name: "Core value action", description: "The single action that delivers value to users.", priority: "Build First" },
+      { name: "Onboarding flow", description: "Get users to their first success in under 3 minutes.", priority: "Build First" },
+      { name: "User accounts", description: "Simple email/Google auth.", priority: "Build First" },
+      { name: "Basic analytics", description: "Track activation and retention events.", priority: "Build Later" },
+      { name: "Payments", description: "Add when you have paying-intent signal.", priority: "Build Later" },
+      { name: "Admin dashboard", description: "Use the database console until it hurts.", priority: "Skip for Now" },
+    ],
+    tech_stack: [
+      { layer: "Frontend", recommendation: "React + Vite + Tailwind", reason: "Fast iteration and huge ecosystem." },
+      { layer: "Backend", recommendation: "Serverless functions", reason: "Zero infra to launch." },
+      { layer: "Database", recommendation: "Postgres (Supabase)", reason: "Auth, RLS, and storage in one." },
+      { layer: "Hosting", recommendation: "Lovable / Vercel", reason: "One-click deploys and previews." },
+      { layer: "Auth", recommendation: "Supabase Auth (email + Google)", reason: "Ships in an hour." },
+    ],
+    launch_plan_30_days: [
+      { week: 1, focus: "Validate the problem", tasks: ["Interview 10 target users", "Write a one-page product brief", "Sketch the core flow"] },
+      { week: 2, focus: "Build the MVP core", tasks: ["Ship the core value action", "Add auth", "Deploy behind a waitlist"] },
+      { week: 3, focus: "Private beta", tasks: ["Invite 20 users", "Instrument analytics", "Fix top 3 friction points"] },
+      { week: 4, focus: "Public launch", tasks: ["Public landing page", "Launch on 2 channels", "Set up weekly retention review"] },
+    ],
+    top_risks: [
+      { risk: "Building too much before validation", severity: "High", mitigation: "Ship the smallest thing that proves the core loop." },
+      { risk: "Wrong target user", severity: "Medium", mitigation: "Run 10 user interviews before writing more code." },
+      { risk: "Weak retention", severity: "Medium", mitigation: "Instrument day-1 and day-7 return early." },
+    ],
+    ai_recommendation: `Cut your feature list in half and ship a private beta to 20 real ${data.industry} users within 3 weeks. Everything else is a distraction until you see returning usage.`,
+  };
+}
 
 export const generateProductStrategy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -104,46 +73,48 @@ export const generateProductStrategy = createServerFn({ method: "POST" })
 Industry: ${data.industry}
 Stage: ${data.stage}
 
-Description:
-${data.description}
+Description: ${data.description}
 
-Target users:
-${data.target_users}
+Target users: ${data.target_users}
 
-${data.current_features?.trim() ? `Existing / planned features (context only — challenge these):\n${data.current_features}` : "No existing features described. Design the MVP from scratch."}
+${data.current_features?.trim() ? `Existing/planned features (challenge these):\n${data.current_features}` : "Design the MVP from scratch."}
 
-Produce the AI Product Strategy JSON now. Every field is mandatory. Do not include markdown fences.`;
+Return the JSON now.`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
+    let strategy: ProductStrategyPayload;
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: userPrompt },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
 
-    if (res.status === 429) throw new Error("Rate limit reached. Please try again in a moment.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Please add credits in workspace settings.");
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`AI error (${res.status}): ${t.slice(0, 200)}`);
+      if (res.status === 429) throw new Error("Rate limit reached. Please try again in a moment.");
+      if (res.status === 402) throw new Error("AI credits exhausted. Please add credits in workspace settings.");
+      if (!res.ok) throw new Error(`AI error (${res.status})`);
+
+      const payload = await res.json();
+      const content = payload?.choices?.[0]?.message?.content;
+      if (!content) throw new Error("AI returned empty response");
+      strategy = typeof content === "string" ? JSON.parse(content) : content;
+      if (!strategy?.product_vision || !Array.isArray(strategy?.mvp_features)) {
+        throw new Error("AI returned incomplete strategy");
+      }
+    } catch (err) {
+      // Fallback: never leave the user with a broken screen.
+      console.warn("[product-strategy] AI failed, using fallback template:", err);
+      strategy = fallbackStrategy(data);
     }
-
-    const payload = await res.json();
-    const content = payload?.choices?.[0]?.message?.content;
-    if (!content) throw new Error("AI returned empty response");
-
-    let strategy: unknown;
-    try { strategy = typeof content === "string" ? JSON.parse(content) : content; }
-    catch { throw new Error("AI returned invalid JSON"); }
 
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
@@ -194,63 +165,85 @@ export const getProductStrategy = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Strategy not found");
-    return row as {
+    const r = row as {
       id: string; product_name: string; industry: string | null; stage: string | null;
       description: string | null; target_users: string | null; current_features: string | null;
-      strategy: ProductStrategyPayload; created_at: string;
+      strategy: unknown; created_at: string;
     };
+    return { ...r, strategy: normalizeStrategy(r.strategy, r.product_name, r.industry ?? "") };
   });
 
+/* -------- Normalizer: adapt legacy rows to the new lightweight schema -------- */
+
+function normalizeStrategy(raw: unknown, productName: string, industry: string): ProductStrategyPayload {
+  const s = (raw ?? {}) as Record<string, any>;
+
+  // Already v2
+  if (s.product_vision && Array.isArray(s.mvp_features) && Array.isArray(s.launch_plan_30_days)) {
+    return s as ProductStrategyPayload;
+  }
+
+  // Legacy v1 → v2 adapter
+  const legacy = s as Partial<{
+    blueprint: any; mvp: any; feature_priorities: any[]; roadmap: any[];
+    build_vs_skip: any; technical_suggestions: any; risks: any[]; executive_summary: string;
+  }>;
+
+  const target_users = (legacy.blueprint?.target_users ?? []).slice(0, 3).map((u: any) => ({
+    segment: u.segment ?? "Users",
+    description: u.core_need ?? u.who_they_are ?? "",
+  }));
+
+  const mustHave = (legacy.mvp?.must_have ?? []).map((f: any) => ({
+    name: f.feature, description: f.why_in_mvp ?? "", priority: "Build First" as const,
+  }));
+  const niceToHave = (legacy.mvp?.nice_to_have ?? []).map((f: any) => ({
+    name: f.feature, description: f.why_deferred ?? "", priority: "Build Later" as const,
+  }));
+  const skip = (legacy.build_vs_skip?.skip_for_now ?? []).map((f: any) => ({
+    name: f.feature, description: f.why_skip ?? "", priority: "Skip for Now" as const,
+  }));
+  const mvp_features = [...mustHave, ...niceToHave, ...skip].slice(0, 7);
+
+  const tech_stack = (legacy.technical_suggestions?.tech_stack ?? []).slice(0, 6).map((t: any) => ({
+    layer: t.layer, recommendation: t.recommendation, reason: t.reason,
+  }));
+
+  const launch_plan_30_days = (legacy.roadmap ?? []).slice(0, 4).map((ph: any, i: number) => ({
+    week: (i + 1) as 1 | 2 | 3 | 4,
+    focus: ph.name ?? ph.objective ?? `Week ${i + 1}`,
+    tasks: (ph.features ?? []).slice(0, 4),
+  }));
+
+  const top_risks = (legacy.risks ?? []).slice(0, 3).map((r: any) => ({
+    risk: r.risk, severity: (r.severity ?? "Medium") as "High" | "Medium" | "Low",
+    mitigation: r.how_to_avoid ?? "",
+  }));
+
+  return {
+    product_vision: legacy.blueprint?.product_vision ?? legacy.executive_summary?.slice(0, 260) ?? `${productName} for ${industry}.`,
+    target_users: target_users.length ? target_users : [{ segment: "Primary users", description: "Define your primary user segment." }],
+    mvp_features: mvp_features.length ? mvp_features : [{ name: "Core action", description: "The single action that delivers value.", priority: "Build First" }],
+    tech_stack: tech_stack.length ? tech_stack : [{ layer: "Frontend", recommendation: "React + Vite", reason: "Fast iteration." }],
+    launch_plan_30_days: launch_plan_30_days.length === 4 ? launch_plan_30_days : [
+      { week: 1, focus: "Validate", tasks: ["Interview 10 users"] },
+      { week: 2, focus: "Build MVP core", tasks: ["Ship core loop"] },
+      { week: 3, focus: "Private beta", tasks: ["Invite 20 users"] },
+      { week: 4, focus: "Public launch", tasks: ["Launch on 2 channels"] },
+    ],
+    top_risks: top_risks.length ? top_risks : [
+      { risk: "Building before validation", severity: "High", mitigation: "Ship smallest MVP." },
+    ],
+    ai_recommendation: legacy.executive_summary ?? `Cut features aggressively and ship a private beta within 3 weeks.`,
+  };
+}
+
 export type ProductStrategyPayload = {
-  executive_summary: string;
-  blueprint: {
-    product_vision: string;
-    core_problem: string;
-    target_users: { segment: string; who_they_are: string; core_need: string }[];
-    personas: { name: string; role: string; context: string; primary_goal: string; biggest_frustration: string; quote: string }[];
-    user_journey: { stage: string; user_action: string; product_response: string; emotion: string }[];
-    product_goals: { goal: string; why_it_matters: string; success_metric: string }[];
-  };
-  mvp: {
-    hypothesis: string;
-    core_value_loop: string;
-    must_have: { feature: string; why_in_mvp: string; risk_if_missing: string }[];
-    nice_to_have: { feature: string; why_deferred: string; trigger_to_build: string }[];
-    future_features: { feature: string; why_later: string; unlocks: string }[];
-  };
-  feature_priorities: {
-    name: string; purpose: string;
-    priority: "High" | "Medium" | "Low";
-    complexity: "Low" | "Medium" | "High";
-    business_impact: "High" | "Medium" | "Low";
-    reason: string;
-  }[];
-  roadmap: {
-    phase: number; name: string; timeline: string; objective: string;
-    features: string[]; success_criteria: string;
-  }[];
-  ai_suggestions: {
-    title: string;
-    type: "Missing" | "Competitor Parity" | "Retention" | "UX" | "AI-Powered";
-    detail: string;
-    expected_impact: "High" | "Medium" | "Low";
-  }[];
-  build_vs_skip: {
-    build_now: { feature: string; why: string; expected_outcome: string }[];
-    skip_for_now: { feature: string; why_skip: string; when_to_revisit: string }[];
-  };
-  technical_suggestions: {
-    tech_stack: { layer: string; recommendation: string; reason: string; alternative: string }[];
-    architecture: { pattern: string; reason: string; diagram_notes: string };
-    database: { type: string; reason: string; key_tables: string[] };
-    apis: { name: string; purpose: string; priority: "High" | "Medium" | "Low" }[];
-    ai_models: { use_case: string; model_recommendation: string; reason: string }[];
-  };
-  risks: {
-    risk: string;
-    why_it_applies: string;
-    consequence: string;
-    how_to_avoid: string;
-    severity: "Low" | "Medium" | "High";
-  }[];
+  product_vision: string;
+  target_users: { segment: string; description: string }[];
+  mvp_features: { name: string; description: string; priority: "Build First" | "Build Later" | "Skip for Now" }[];
+  tech_stack: { layer: string; recommendation: string; reason: string }[];
+  launch_plan_30_days: { week: 1 | 2 | 3 | 4; focus: string; tasks: string[] }[];
+  top_risks: { risk: string; severity: "High" | "Medium" | "Low"; mitigation: string }[];
+  ai_recommendation: string;
 };
